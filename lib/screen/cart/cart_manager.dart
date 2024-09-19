@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:petshop/model/cart.dart';
-import 'package:petshop/model/pet.dart';
+import 'package:petshop/model/product.dart';
 
 class CartManager with ChangeNotifier {
   Map<String, CartItem> _items = {};
@@ -33,7 +33,7 @@ class CartManager with ChangeNotifier {
     return total;
   }
 
-  void addItem(Pet product) {
+  void addItem(Product product) {
     if (_items.containsKey(product.id)) {
       //change quantity...
       _items.update(

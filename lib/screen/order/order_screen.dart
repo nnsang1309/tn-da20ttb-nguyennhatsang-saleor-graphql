@@ -9,10 +9,10 @@ class OrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ordersManager = OrdersManager();
+    // final ordersManager = OrdersManager();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Orders'),
+        title: const Text('Your Orders'),
       ),
       body: Consumer<OrdersManager>(builder: (ctx, ordersManager, child) {
         return ListView.builder(

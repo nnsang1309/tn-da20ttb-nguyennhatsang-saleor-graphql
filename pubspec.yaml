@@ -31,6 +31,7 @@ dependencies:
   google_fonts: ^6.2.1
   intl:
   provider:
+  graphql_flutter: ^5.1.2
   flutter:
     sdk: flutter
 

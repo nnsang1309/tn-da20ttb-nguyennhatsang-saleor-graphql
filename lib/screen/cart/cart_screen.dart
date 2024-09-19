@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:petshop/main.dart';
+// import 'package:petshop/main.dart';
 import 'package:petshop/screen/cart/cart_item_card.dart';
 import 'package:petshop/screen/cart/cart_manager.dart';
 import 'package:petshop/screen/order/order_manager.dart';

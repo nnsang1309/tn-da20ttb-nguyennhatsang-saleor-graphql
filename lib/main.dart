@@ -1,65 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:petshop/screen/cart/cart_manager.dart';
 import 'package:petshop/screen/cart/cart_screen.dart';
 import 'package:petshop/screen/order/order_screen.dart';
 import 'package:petshop/screen/personal/personal_screen.dart';
-import 'package:petshop/screen/pet/pet_detail_screen.dart';
-import 'package:petshop/screen/pet/pet_manager.dart';
-import 'package:petshop/screen/pet/pet_overview_screen.dart';
+import 'package:petshop/screen/product/product_detail_screen.dart';
+import 'package:petshop/screen/product/product_manager.dart';
+import 'package:petshop/screen/product/product_overview_screen.dart';
+import 'package:petshop/service/graphql_config.dart';
 import 'package:provider/provider.dart';
 import 'package:petshop/screen/order/order_manager.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final client = GraphqlConfig.initializeClient();
+
+  runApp(MyApp(client: client));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ValueNotifier<GraphQLClient> client;
+  const MyApp({super.key, required this.client});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => PetsManager(),
+    //Khởi tạo một client GraphQL
+    final client = GraphqlConfig.initializeClient();
+    return GraphQLProvider(
+      client: client,
+      child: CacheProvider(
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(
+              create: (_) => ProductsManager(),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => CartManager(),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => OrdersManager(),
+            ),
+          ],
+          child: MaterialApp(
+            title: 'PetShop',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+                fontFamily: 'Lato',
+                colorScheme: ColorScheme.fromSwatch(
+                  primarySwatch: Colors.purple,
+                ).copyWith(
+                  secondary: Colors.deepOrange,
+                )),
+            home: const MyHomePage(
+              title: 'User',
+            ),
+            routes: {
+              CartScreen.routeName: (context) => const CartScreen(),
+              OrdersScreen.routeName: (context) => const OrdersScreen(),
+              ProfileEdit.routeName: (context) => const ProfileEdit(),
+            },
+            //xử lý các route động, khi mở chi tiet sản phẩm
+            onGenerateRoute: (settings) {
+              // if (settings.name == PetDetailScreen.routeName) {
+              //   final productID = settings.arguments as String;
+              //   return MaterialPageRoute(builder: (ctx) {
+              //     return PetDetailScreen(
+              //         // ctx.read<ProductsManager>().findById(productID)!,
+              //         );
+              //   });
+              // }
+              // return null;
+            },
+          ),
         ),
-        ChangeNotifierProvider(
-          create: (_) => CartManager(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => OrdersManager(),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'PetShop',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-            fontFamily: 'Lato',
-            colorScheme: ColorScheme.fromSwatch(
-              primarySwatch: Colors.purple,
-            ).copyWith(
-              secondary: Colors.deepOrange,
-            )),
-        home: const MyHomePage(
-          title: 'User',
-        ),
-        routes: {
-          CartScreen.routeName: (context) => const CartScreen(),
-          OrdersScreen.routeName: (context) => const OrdersScreen(),
-          ProfileEdit.routeName: (context) => const ProfileEdit(),
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == PetDetailScreen.routeName) {
-            final productID = settings.arguments as String;
-            return MaterialPageRoute(builder: (ctx) {
-              return PetDetailScreen(
-                ctx.read<PetsManager>().findById(productID)!,
-              );
-            });
-          }
-          return null;
-        },
       ),
     );
   }
@@ -75,12 +89,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // danh danh screen
   final screens = [
-    const PetOverviewScreen(),
+    const ProductOverviewScreen(),
     const CartScreen(),
     const OrdersScreen(),
     const ProfileEdit(),
   ];
+  // trang thai cua tab hiện tại
   late int index = 0;
   @override
   Widget build(BuildContext context) {
@@ -106,3 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+//------
+
+

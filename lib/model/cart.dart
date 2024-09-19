@@ -2,7 +2,7 @@ class CartItem {
   final String id;
   final String title;
   final int quantity;
-  final int price;
+  final double price;
 
   CartItem({
     required this.id,
@@ -14,7 +14,7 @@ class CartItem {
     String? id,
     String? title,
     int? quantity,
-    int? price,
+    double? price,
   }) {
     return CartItem(
       id: id ?? this.id,
