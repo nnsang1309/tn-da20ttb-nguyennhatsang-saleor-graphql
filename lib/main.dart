@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 import 'package:petshop/screen/cart/cart_manager.dart';
 import 'package:petshop/screen/cart/cart_screen.dart';
 import 'package:petshop/screen/order/order_screen.dart';
 import 'package:petshop/screen/personal/personal_screen.dart';
 import 'package:petshop/screen/product/product_detail_screen.dart';
-import 'package:petshop/screen/product/product_manager.dart';
+
 import 'package:petshop/screen/product/product_overview_screen.dart';
 import 'package:petshop/service/graphql_config.dart';
+import 'package:petshop/service/product_service.dart';
 import 'package:provider/provider.dart';
 import 'package:petshop/screen/order/order_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final client = GraphqlConfig.initializeClient();
+
+  // GraphQL Client
+  await initHiveForFlutter();
+  final ValueNotifier<GraphQLClient> client = GraphqlConfig.initializeClient();
 
   runApp(MyApp(client: client));
 }
 
+// Class Main App
 class MyApp extends StatelessWidget {
   final ValueNotifier<GraphQLClient> client;
   const MyApp({super.key, required this.client});
@@ -25,52 +31,62 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    //Khởi tạo một client GraphQL
+    //Init GraphQL client
     final client = GraphqlConfig.initializeClient();
+    // Provide GraphQL client for entire child widget tree
     return GraphQLProvider(
       client: client,
       child: CacheProvider(
         child: MultiProvider(
+          //Provider
           providers: [
             ChangeNotifierProvider(
-              create: (_) => ProductsManager(),
+              create: (_) =>
+                  ProductService(client: client.value), // Quan ly san pham
             ),
             ChangeNotifierProvider(
-              create: (_) => CartManager(),
+              create: (_) => CartManager(), // Quan ly gio hang
             ),
             ChangeNotifierProvider(
-              create: (_) => OrdersManager(),
+              create: (_) => OrdersManager(), // Quan ly don hang
             ),
           ],
+          //App
           child: MaterialApp(
             title: 'PetShop',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
                 fontFamily: 'Lato',
                 colorScheme: ColorScheme.fromSwatch(
-                  primarySwatch: Colors.purple,
+                  primarySwatch: Colors.purple, // mau chinh
                 ).copyWith(
-                  secondary: Colors.deepOrange,
+                  secondary: Colors.deepOrange, // mau phu
                 )),
-            home: const MyHomePage(
+
+            home: MyHomePage(
               title: 'User',
+              client: client,
             ),
+            //static routes
             routes: {
-              CartScreen.routeName: (context) => const CartScreen(),
-              OrdersScreen.routeName: (context) => const OrdersScreen(),
-              ProfileEdit.routeName: (context) => const ProfileEdit(),
+              CartScreen.routeName: (context) =>
+                  const CartScreen(), // route en gio hang
+              OrdersScreen.routeName: (context) =>
+                  const OrdersScreen(), // route  don hang
+              ProfileEdit.routeName: (context) =>
+                  const ProfileEdit(), // route ca nhan
             },
-            //xử lý các route động, khi mở chi tiet sản phẩm
+            // dynamic route, when opening productdetails screen
             onGenerateRoute: (settings) {
-              // if (settings.name == PetDetailScreen.routeName) {
-              //   final productID = settings.arguments as String;
-              //   return MaterialPageRoute(builder: (ctx) {
-              //     return PetDetailScreen(
-              //         // ctx.read<ProductsManager>().findById(productID)!,
-              //         );
-              //   });
-              // }
-              // return null;
+              if (settings.name == ProductDetailScreen.routeName) {
+                final productID = settings.arguments as String;
+                return MaterialPageRoute(builder: (ctx) {
+                  return ProductDetailScreen(
+                    ctx.read<ProductService>().findById(productID)!,
+                  );
+                });
+              }
+              return null;
             },
           ),
         ),
@@ -79,9 +95,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Main Screen
 class MyHomePage extends StatefulWidget {
   static const routeName = '/';
-  const MyHomePage({super.key, required this.title});
+  final ValueNotifier<GraphQLClient> client;
+  const MyHomePage({super.key, required this.title, required this.client});
   final String title;
 
   @override
@@ -89,25 +107,43 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // danh danh screen
+  // // List screen
+  // late final List<Widget> screens;
+  // late ProductService productService;
+  // // index tab
+  // late int index = 0;
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   productService = ProductService(client: widget.client.value);
+  //   // fetchProducts();
+  //   screens = [
+  //     const ProductOverviewScreen(),
+  //     const CartScreen(),
+  //     const OrdersScreen(),
+  //     const ProfileEdit(),
+  //   ];
+  // }
+
   final screens = [
     const ProductOverviewScreen(),
     const CartScreen(),
     const OrdersScreen(),
     const ProfileEdit(),
   ];
-  // trang thai cua tab hiện tại
   late int index = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: screens[index],
+      body: screens[index], // hien thi man hinh tuong ung voi tab hien tai
       bottomNavigationBar: NavigationBarTheme(
         data: const NavigationBarThemeData(),
         child: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: (index) =>
-              setState(() => (this.index = index)),
+          selectedIndex: index, // chi so tab duoc chon
+          onDestinationSelected: (index) => setState(
+              () => (this.index = index)), // Cap nhat chi so tab khi chon
           destinations: const [
             NavigationDestination(icon: Icon(Icons.home), label: 'Trang chủ'),
             NavigationDestination(
@@ -122,7 +158,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-//------
-
-

@@ -1,93 +1,111 @@
-import 'package:flutter/material.dart';
-import 'package:petshop/graphql/product/product_queries.dart';
-// import 'package:petshop/service/graphql_config.dart';
-// import '../../model/product.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+// lib/screen/product/product_detail_screen.dart
 
-class PetDetailScreen extends StatelessWidget {
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:petshop/model/product.dart';
+import '../../service/graphql_config.dart';
+import '../../service/product_service.dart';
+
+class ProductDetailScreen extends StatelessWidget {
   static const routeName = '/pet-detail';
-  const PetDetailScreen(
-    this.productId, {
+  const ProductDetailScreen(
+    this.product, {
     super.key,
   });
 
-  // final Product pet;
-  final String productId;
+  final Product product;
+
+  Future<Map<String, dynamic>> fetchProductById(String id) async {
+    final client = GraphqlConfig.initializeClient().value;
+    final productService = ProductService(client: client);
+    return await productService.getProductDetailById(id);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Chi tiet dong vat"),
-        ),
-        body: Query(
-            options: QueryOptions(
-              document: gql(getProductById),
-              variables: {
-                'productId': productId,
-              },
-            ),
-            builder: (QueryResult result,
-                {VoidCallback? refetch, FetchMore? fetchMore}) {
-              if (result.isLoading) {
-                return Center(
-                  child: const CircularProgressIndicator(),
-                );
-              }
-              if (result.hasException) {
-                return Center(
-                  child: Text('Error: ${result.exception.toString()}'),
-                );
-              }
+      appBar: AppBar(
+        title: const Text("Chi tiết sản phẩm"),
+        backgroundColor: Colors.blue,
+      ),
+      // body: FutureBuilder<Map<String, dynamic>>(
+      //   future: fetchProductById(productId),
+      //   builder: (context, snapshot) {
+      //     if (snapshot.connectionState == ConnectionState.waiting) {
+      //       return const Center(child: CircularProgressIndicator());
+      //     } else if (snapshot.hasError) {
+      //       return Center(child: Text('Error: ${snapshot.error}'));
+      //     } else if (!snapshot.hasData) {
+      //       return const Center(child: Text('No data found'));
+      //     }
 
-              final product = result.data?['product'];
+      //     final product = snapshot.data!;
+      //     final description = getDecodedDescription(product['description']);
 
-              return SingleChildScrollView(
-                child: Column(children: <Widget>[
-                  SizedBox(
-                    height: 300,
-                    width: double.infinity,
-                    child: Image.network(
-                      product['media'][0]['url'],
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    '\$${product['name']}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                    ),
-                  ),
-                  Text(
-                    '\$${product['']}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                    ),
-                  ),
-                  Text(
-                    '\$${product['pricing']['priceRange']['start']['gross']['amount']} ${product['pricing']['priceRange']['start']['gross']['currency']}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    width: double.infinity,
-                    child: Text(
-                      product['description'],
-                      textAlign: TextAlign.center,
-                      softWrap: true,
-                    ),
-                  ),
-                ]),
-              );
-            }));
+      //     return SingleChildScrollView(
+      //       child: Column(
+      //         children: <Widget>[
+      //           Row(
+      //             mainAxisAlignment: MainAxisAlignment.center,
+      //             children: [
+      //               Container(
+      //                 height: 300,
+      //                 width: 200,
+      //                 decoration: const BoxDecoration(
+      //                   shape: BoxShape.circle,
+      //                 ),
+      //                 child: Image.network(
+      //                   product['media'][0]['url'],
+      //                   fit: BoxFit.cover,
+      //                 ),
+      //               ),
+      //             ],
+      //           ),
+      //           const SizedBox(height: 20),
+      //           Container(
+      //             height: 400,
+      //             width: double.infinity,
+      //             padding: const EdgeInsets.all(20),
+      //             child: Column(
+      //               children: [
+      //                 Text(
+      //                   product['name'],
+      //                   style: const TextStyle(
+      //                     color: Colors.grey,
+      //                     fontSize: 20,
+      //                     fontWeight: FontWeight.bold,
+      //                   ),
+      //                 ),
+      //                 Text(
+      //                   '${product['pricing']['priceRange']['start']['gross']['amount']} ${product['pricing']['priceRange']['start']['gross']['currency']}',
+      //                   style: const TextStyle(
+      //                     color: Colors.grey,
+      //                     fontSize: 20,
+      //                   ),
+      //                 ),
+      //                 Text(
+      //                   description,
+      //                   textAlign: TextAlign.justify,
+      //                   softWrap: true,
+      //                   style: const TextStyle(fontSize: 16),
+      //                 ),
+      //               ],
+      //             ),
+      //           ),
+      //         ],
+      //       ),
+      //     );
+      //   },
+      // ),
+    );
+  }
+
+  String getDecodedDescription(String jsonString) {
+    try {
+      Map<String, dynamic> decodedJson = jsonDecode(jsonString);
+      return decodedJson['blocks'][0]['data']['text'];
+    } catch (e) {
+      return 'Mô tả không khả dụng';
+    }
   }
 }

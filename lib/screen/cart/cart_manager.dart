@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:petshop/model/cart.dart';
-import 'package:petshop/model/product.dart';
 
 class CartManager with ChangeNotifier {
   Map<String, CartItem> _items = {};
@@ -33,28 +32,28 @@ class CartManager with ChangeNotifier {
     return total;
   }
 
-  void addItem(Product product) {
-    if (_items.containsKey(product.id)) {
-      //change quantity...
-      _items.update(
-        product.id!,
-        (existingCartItem) => existingCartItem.copyWith(
-          quantity: existingCartItem.quantity + 1,
-        ),
-      );
-    } else {
-      _items.putIfAbsent(
-        product.id!,
-        () => CartItem(
-          id: 'c${DateTime.now().toIso8601String()}',
-          title: product.title,
-          price: product.price,
-          quantity: 1,
-        ),
-      );
-    }
-    notifyListeners();
-  }
+  // void addItem(Product product) {
+  //   if (_items.containsKey(product.id)) {
+  //     //change quantity...
+  //     _items.update(
+  //       product.id!,
+  //       (existingCartItem) => existingCartItem.copyWith(
+  //         quantity: existingCartItem.quantity + 1,
+  //       ),
+  //     );
+  //   } else {
+  //     _items.putIfAbsent(
+  //       product.id!,
+  //       () => CartItem(
+  //         id: 'c${DateTime.now().toIso8601String()}',
+  //         title: product.title,
+  //         price: product.price,
+  //         quantity: 1,
+  //       ),
+  //     );
+  //   }
+  //   notifyListeners();
+  // }
 
   void removeItem(String productId) {
     _items.remove(productId);
