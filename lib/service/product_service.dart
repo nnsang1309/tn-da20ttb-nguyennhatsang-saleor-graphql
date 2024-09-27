@@ -47,20 +47,20 @@ class ProductService with ChangeNotifier {
   }
 
   // Lấy chi tiết sản phẩm theo ID
-  Future<Map<String, dynamic>> getProductDetailById(String productId) async {
-    final QueryResult result = await client.query(
-      QueryOptions(
-        document: gql(getProductById),
-        variables: {'productId': productId},
-      ),
-    );
+  // Future<Map<String, dynamic>> getProductDetailById(String productId) async {
+  //   final QueryResult result = await client.query(
+  //     QueryOptions(
+  //       document: gql(getProductById),
+  //       variables: {'productId': productId},
+  //     ),
+  //   );
 
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
-    }
+  //   if (result.hasException) {
+  //     throw Exception(result.exception.toString());
+  //   }
 
-    return result.data!['product'] as Map<String, dynamic>;
-  }
+  //   return result.data!['product'] as Map<String, dynamic>;
+  // }
 
   // Tìm sản phẩm theo ID
   Product? findById(String id) {
@@ -87,4 +87,10 @@ class ProductService with ChangeNotifier {
         .toList();
     notifyListeners(); // Cập nhật lại trạng thái
   }
+
+  // add to card
+
+  // remove
+
+  // update total
 }

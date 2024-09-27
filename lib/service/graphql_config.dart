@@ -10,17 +10,17 @@ class GraphqlConfig {
     );
 
     // Tạo AuthLink để thêm token xác thực vào mỗi request
-    // final AuthLink authLink = AuthLink(
-    //   getToken: () async => 'Bearer YOUR_AUTH_TOKEN',
-    // );
+    final AuthLink authLink = AuthLink(
+      getToken: () async => 'Bearer YOUR_AUTH_TOKEN',
+    );
 
     // Tạo Link bằng cách kết hợp HttpLink và AuthLink
-    // final Link link = authLink.concat(httpLink);
+    final Link link = authLink.concat(httpLink);
 
     // Tạo GraphQLClient
     final GraphQLClient client = GraphQLClient(
       cache: GraphQLCache(store: InMemoryStore()),
-      link: httpLink,
+      link: link,
     );
 
     // Trả về ValueNotifier chứa GraphQLClient

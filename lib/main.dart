@@ -9,18 +9,25 @@ import 'package:petshop/screen/product/product_detail_screen.dart';
 
 import 'package:petshop/screen/product/product_overview_screen.dart';
 import 'package:petshop/service/graphql_config.dart';
+import 'package:petshop/service/login_or_register.dart';
 import 'package:petshop/service/product_service.dart';
+import 'package:petshop/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:petshop/screen/order/order_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // GraphQL Client
+  // GraphQL Client to connect GraphQL Server
   await initHiveForFlutter();
   final ValueNotifier<GraphQLClient> client = GraphqlConfig.initializeClient();
 
-  runApp(MyApp(client: client));
+  runApp(
+    ChangeNotifierProvider(
+      create: (ctx) => ThemeProvider(),
+      child: MyApp(client: client),
+    ),
+  );
 }
 
 // Class Main App
@@ -55,22 +62,19 @@ class MyApp extends StatelessWidget {
           child: MaterialApp(
             title: 'PetShop',
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-                fontFamily: 'Lato',
-                colorScheme: ColorScheme.fromSwatch(
-                  primarySwatch: Colors.purple, // mau chinh
-                ).copyWith(
-                  secondary: Colors.deepOrange, // mau phu
-                )),
+            theme: Provider.of<ThemeProvider>(context).themeData,
 
-            home: MyHomePage(
-              title: 'User',
-              client: client,
-            ),
+            home: const LoginOrRegister(),
+            // home: MyHomePage(
+            //   title: 'User',
+            //   client: client,
+            // ),
             //static routes
             routes: {
+              ProductOverviewScreen.routeName: (context) =>
+                  const ProductOverviewScreen(), // route overview
               CartScreen.routeName: (context) =>
-                  const CartScreen(), // route en gio hang
+                  const CartScreen(), // route gio hang
               OrdersScreen.routeName: (context) =>
                   const OrdersScreen(), // route  don hang
               ProfileEdit.routeName: (context) =>
@@ -106,26 +110,8 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//
 class _MyHomePageState extends State<MyHomePage> {
-  // // List screen
-  // late final List<Widget> screens;
-  // late ProductService productService;
-  // // index tab
-  // late int index = 0;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   productService = ProductService(client: widget.client.value);
-  //   // fetchProducts();
-  //   screens = [
-  //     const ProductOverviewScreen(),
-  //     const CartScreen(),
-  //     const OrdersScreen(),
-  //     const ProfileEdit(),
-  //   ];
-  // }
-
   final screens = [
     const ProductOverviewScreen(),
     const CartScreen(),
@@ -158,3 +144,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+//--------
+
+// import 'package:flutter/material.dart';
+// import 'package:graphql_flutter/graphql_flutter.dart';
+// import 'package:petshop/screen/auth/login.dart';
+// import 'package:petshop/service/graphql_config.dart';
+// import 'package:petshop/service/login_or_register.dart';
+// import 'package:petshop/themes/theme_provider.dart';
+// import 'package:provider/provider.dart';
+
+// void main() async {
+//   // await initHiveForFlutter();
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   runApp(ChangeNotifierProvider(
+//     create: (context) => ThemeProvider(),
+//     child: MyApp(),
+//   ));
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+//   @override
+//   Widget build(BuildContext context) {
+//     return GraphQLProvider(
+//       client: GraphqlConfig.initializeClient(),
+//       child: CacheProvider(
+//         child: MaterialApp(
+//           debugShowCheckedModeBanner: false,
+//           title: 'Flutter E-commerce',
+//           home: const LoginOrRegister(),
+//           theme: Provider.of<ThemeProvider>(context).themeData,
+//         ),
+//       ),
+//     );
+//   }
+// }

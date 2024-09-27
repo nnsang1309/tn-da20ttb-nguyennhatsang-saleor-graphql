@@ -5,7 +5,10 @@ import '../../model/product.dart';
 import '../../service/product_service.dart';
 
 class ProductOverviewScreen extends StatelessWidget {
-  const ProductOverviewScreen({super.key});
+  static const routeName = '/overview';
+
+  final Map<String, dynamic>? userData;
+  const ProductOverviewScreen({super.key, this.userData});
 
   @override
   Widget build(BuildContext context) {
