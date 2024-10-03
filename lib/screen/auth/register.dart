@@ -115,7 +115,7 @@ class _RegisterScreen extends State<RegisterScreen> {
 
                 // Create an account message
                 Text(
-                  "Let's create an account for you",
+                  "Đăng ký tài khoản",
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 16,
@@ -127,7 +127,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                 // name textfield
                 MyTextField(
                   controller: nameController,
-                  hintText: "Enter name",
+                  hintText: "Nhập tên",
                   obscureText: false,
                 ),
 
@@ -136,7 +136,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                 // email textfield
                 MyTextField(
                   controller: emailController,
-                  hintText: "Enter email",
+                  hintText: "Nhập email",
                   obscureText: false,
                 ),
 
@@ -145,7 +145,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                 // password textfield
                 MyTextField(
                   controller: pwController,
-                  hintText: "Enter password",
+                  hintText: "Nhập mật khẩu",
                   obscureText: true,
                 ),
 
@@ -154,7 +154,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                 // confirm password textfield
                 MyTextField(
                   controller: confirmPwController,
-                  hintText: "Confirm password",
+                  hintText: "Nhập lại mật khẩu",
                   obscureText: true,
                 ),
 
@@ -162,7 +162,7 @@ class _RegisterScreen extends State<RegisterScreen> {
 
                 //sign up button
                 MyButton(
-                  text: "Register",
+                  text: "Đăng ký",
                   onTap: () {},
                 ),
 
@@ -173,7 +173,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already a member?",
+                      "Đã có tài khoản?",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -184,7 +184,7 @@ class _RegisterScreen extends State<RegisterScreen> {
                     GestureDetector(
                       onTap: widget.onTap,
                       child: Text(
-                        "Login now",
+                        "Đăng nhập",
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,

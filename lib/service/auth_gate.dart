@@ -1,12 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:petshop/service/auth_service.dart';
-import 'package:petshop/service/graphql_config.dart';
 import 'package:petshop/service/login_or_register.dart';
 import 'package:provider/provider.dart';
-
 import '../screen/product/product_overview_screen.dart';
 
 /*

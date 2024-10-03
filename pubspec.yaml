@@ -32,6 +32,7 @@ dependencies:
   intl:
   provider: ^6.1.2
   graphql_flutter: ^5.1.2
+  shared_preferences: ^2.0.12
   flutter:
     sdk: flutter
 
