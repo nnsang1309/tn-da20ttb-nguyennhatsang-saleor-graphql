@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:petshop/screen/cart/cart_manager.dart';
+
 import 'package:petshop/screen/cart/cart_screen.dart';
 import 'package:petshop/screen/home_page.dart';
 import 'package:petshop/screen/order/order_screen.dart';
@@ -8,12 +8,14 @@ import 'package:petshop/screen/personal/personal_screen.dart';
 import 'package:petshop/screen/product/product_detail_screen.dart';
 import 'package:petshop/screen/product/product_overview_screen.dart';
 import 'package:petshop/service/auth_service.dart';
+import 'package:petshop/service/cart_service.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:petshop/service/login_or_register.dart';
+import 'package:petshop/service/order_service.dart';
 import 'package:petshop/service/product_service.dart';
 import 'package:petshop/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:petshop/screen/order/order_manager.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -48,8 +50,8 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(
                 create: (_) => ProductService(client: client.value)),
-            ChangeNotifierProvider(create: (_) => CartManager()),
-            ChangeNotifierProvider(create: (_) => OrdersManager()),
+            ChangeNotifierProvider(create: (_) => CartService()),
+            ChangeNotifierProvider(create: (_) => OrderService()),
           ],
           child: Builder(
             builder: (context) {

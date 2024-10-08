@@ -1,21 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:petshop/screen/home_page.dart';
+import 'package:petshop/service/auth_gate.dart';
+import 'package:petshop/service/auth_service.dart';
+import 'package:petshop/service/graphql_config.dart';
+import 'package:petshop/service/login_or_register.dart';
 
 class ProfileEdit extends StatefulWidget {
   static const routeName = '/personal';
-  const ProfileEdit({super.key});
+  final void Function()? onTap;
+  const ProfileEdit({super.key, this.onTap});
 
   @override
   State<ProfileEdit> createState() => _ProfileEditState();
 }
 
 class _ProfileEditState extends State<ProfileEdit> {
+  final AuthService _authService = AuthService();
+
+  // Logout function
+  void _logout() async {
+    await _authService.logout();
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => LoginOrRegister(),
+        ),
+      );
+    }
+  }
+
   late TextEditingController _nameController;
   late TextEditingController _phoneNumberController;
   late TextEditingController _emailController;
   late TextEditingController _temporaryAddressController;
   late TextEditingController _hometownController;
-  late TextEditingController _occupationController;
+
   late TextEditingController _dateOfBirthController;
 
   String _originalName = 'Chưa có tên';
@@ -23,7 +43,7 @@ class _ProfileEditState extends State<ProfileEdit> {
   String _originalEmail = '@gmail.com';
   String _originalTemporaryAddress = 'Càng Long, Trà Vinh';
   String _originalHometown = 'Trà Vinh';
-  String _originalOccupation = 'Sinh viên';
+
   String _originalGender = 'Nam';
   String _originalDateOfBirth = '01/01/2002';
 
@@ -40,7 +60,7 @@ class _ProfileEditState extends State<ProfileEdit> {
     _temporaryAddressController =
         TextEditingController(text: _originalTemporaryAddress);
     _hometownController = TextEditingController(text: _originalHometown);
-    _occupationController = TextEditingController(text: _originalOccupation);
+
     _dateOfBirthController = TextEditingController(text: _originalDateOfBirth);
 
     _nameController.addListener(_checkForChanges);
@@ -48,7 +68,6 @@ class _ProfileEditState extends State<ProfileEdit> {
     _emailController.addListener(_checkForChanges);
     _temporaryAddressController.addListener(_checkForChanges);
     _hometownController.addListener(_checkForChanges);
-    _occupationController.addListener(_checkForChanges);
     _dateOfBirthController.addListener(_checkForChanges);
   }
 
@@ -59,7 +78,6 @@ class _ProfileEditState extends State<ProfileEdit> {
           _emailController.text != _originalEmail ||
           _temporaryAddressController.text != _originalTemporaryAddress ||
           _hometownController.text != _originalHometown ||
-          _occupationController.text != _originalOccupation ||
           _gender != _originalGender ||
           _dateOfBirthController.text != _originalDateOfBirth;
     });
@@ -72,7 +90,7 @@ class _ProfileEditState extends State<ProfileEdit> {
     _emailController.dispose();
     _temporaryAddressController.dispose();
     _hometownController.dispose();
-    _occupationController.dispose();
+
     _dateOfBirthController.dispose();
     super.dispose();
   }
@@ -88,109 +106,117 @@ class _ProfileEditState extends State<ProfileEdit> {
               ),
               body: Column(
                 children: [
-                  Container(
-                    // decoration: BoxDecoration(
-                    //   color: Color.fromARGB(255, 93, 121, 205),
-                    //   borderRadius: const BorderRadius.only(
-                    //     bottomRight: Radius.circular(50),
-                    //   ),
-                    // ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 30),
-                          leading: IconButton(
-                            icon: Icon(Icons.chevron_left, color: Colors.white),
-                            onPressed: () {
-                              if (_isUpdated) {
-                                _saveChangesAndPop();
-                              } else {
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                          title: Text(
-                            'TRANG CÁ NHÂN',
-                            style: GoogleFonts.oswald(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'Hãy cùng tôi quản lý tài khoản nhé!',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  color:
-                                      const Color.fromARGB(165, 255, 255, 255),
-                                  fontSize: 12,
-                                ),
-                          ),
-                          // trailing: Row(
-                          //   mainAxisSize: MainAxisSize.min,
-                          //   children: [
-                          //     CircleAvatar(
-                          //       radius: 25,
-                          //       backgroundImage:
-                          //           AssetImage('assets/avatar.png'),
-                          //     ),
-                          //     SizedBox(width: 10),
-                          //     Container(
-                          //       width: 30,
-                          //       height: 30,
-                          //       decoration: BoxDecoration(
-                          //         color: Colors.red,
-                          //         shape: BoxShape.circle,
-                          //         border:
-                          //             Border.all(color: Colors.white, width: 2),
-                          //       ),
-                          //       child: Center(
-                          //         child: Icon(
-                          //           Icons.notifications,
-                          //           color: Colors.white,
-                          //           size: 20,
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
+                  // Container(
+                  //   decoration: const BoxDecoration(
+                  //     color: Color.fromARGB(255, 93, 121, 205),
+                  //     borderRadius: BorderRadius.only(
+                  //       bottomRight: Radius.circular(50),
+                  //     ),
+                  //   ),
+                  //   child: Column(
+                  //     children: [
+                  // const SizedBox(height: 20),
+
+                  // TRANG CÁ NHÂN
+                  // ListTile(
+                  //   contentPadding:
+                  //       const EdgeInsets.symmetric(horizontal: 30),
+                  //   leading: IconButton(
+                  //     icon: Icon(Icons.chevron_left, color: Colors.white),
+                  //     onPressed: () {
+                  //       if (_isUpdated) {
+                  //         _saveChangesAndPop();
+                  //       } else {
+                  //         Navigator.pop(context);
+                  //       }
+                  //     },
+                  //   ),
+                  //   title: Text(
+                  //     'TRANG CÁ NHÂN',
+                  //     style: GoogleFonts.oswald(
+                  //       color: Colors.white,
+                  //       fontSize: 18,
+                  //     ),
+                  //   ),
+                  //   subtitle: Text(
+                  //     'Hãy cùng tôi quản lý tài khoản nhé!',
+                  //     style: Theme.of(context)
+                  //         .textTheme
+                  //         .titleSmall
+                  //         ?.copyWith(
+                  //           color:
+                  //               const Color.fromARGB(165, 255, 255, 255),
+                  //           fontSize: 12,
+                  //         ),
+                  //   ),
+                  //   trailing: Row(
+                  //     mainAxisSize: MainAxisSize.min,
+                  //     children: [
+                  //       const CircleAvatar(
+                  //         radius: 25,
+                  //         backgroundImage:
+                  //             AssetImage('assets/avatar.png'),
+                  //       ),
+                  //       const SizedBox(width: 10),
+                  //       Container(
+                  //         width: 30,
+                  //         height: 30,
+                  //         decoration: BoxDecoration(
+                  //           color: Colors.red,
+                  //           shape: BoxShape.circle,
+                  //           border:
+                  //               Border.all(color: Colors.white, width: 2),
+                  //         ),
+                  //         child: const Center(
+                  //           child: Icon(
+                  //             Icons.notifications,
+                  //             color: Colors.white,
+                  //             size: 20,
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+
+                  // const SizedBox(height: 10),
+                  //     ],
+                  //   ),
+                  // ),
+
+                  // User profile
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.all(30),
+                      padding: const EdgeInsets.all(30),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ProfileField(
-                              label: 'Họ và tên', controller: _nameController),
-                          DropdownField(
-                            label: 'Giới tính',
-                            value: _gender,
-                            onChanged: (value) {
-                              setState(() {
-                                _gender = value!;
-                                _checkForChanges();
-                              });
-                            },
-                          ),
-                          ProfileField(
-                              label: 'Ngày sinh',
-                              controller: _dateOfBirthController),
-                          ProfileField(
-                              label: 'Số điện thoại',
-                              controller: _phoneNumberController),
+                          // ProfileField(
+                          //     label: 'Họ và tên', controller: _nameController),
+
+                          // Gener
+
+                          // DropdownField(
+                          //   label: 'Giới tính',
+                          //   value: _gender,
+                          //   onChanged: (value) {
+                          //     setState(() {
+                          //       _gender = value!;
+                          //       _checkForChanges();
+                          //     });
+                          //   },
+                          // ),
+
+                          // ProfileField(
+                          //     label: 'Số điện thoại',
+                          //     controller: _phoneNumberController),
+
+                          // Email
                           ProfileField(
                               label: 'Email', controller: _emailController),
-                          ProfileField(
-                              label: 'Địa chỉ',
-                              controller: _temporaryAddressController),
+                          // ProfileField(
+                          //     label: 'Địa chỉ',
+                          //     controller: _temporaryAddressController),
 
                           const SizedBox(height: 10),
 
@@ -217,12 +243,13 @@ class _ProfileEditState extends State<ProfileEdit> {
                               ),
                             ),
                           ),
+
                           const SizedBox(height: 10),
 
-                          // Logout
+                          // Đăng xuất
                           Center(
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: _logout,
                               label: const Text(
                                 'Đăng xuất',
                                 style: TextStyle(
@@ -259,7 +286,7 @@ class _ProfileEditState extends State<ProfileEdit> {
     String newEmail = _emailController.text;
     String newTemporaryAddress = _temporaryAddressController.text;
     String newHometown = _hometownController.text;
-    String newOccupation = _occupationController.text;
+
     String newDateOfBirth = _dateOfBirthController.text;
 
     // Kiểm tra các trường không được để trống
@@ -268,7 +295,6 @@ class _ProfileEditState extends State<ProfileEdit> {
         newEmail.isEmpty ||
         newTemporaryAddress.isEmpty ||
         newHometown.isEmpty ||
-        newOccupation.isEmpty ||
         newDateOfBirth.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -297,7 +323,7 @@ class _ProfileEditState extends State<ProfileEdit> {
       _originalEmail = newEmail;
       _originalTemporaryAddress = newTemporaryAddress;
       _originalHometown = newHometown;
-      _originalOccupation = newOccupation;
+
       _originalGender = _gender;
       _originalDateOfBirth = newDateOfBirth;
     });
@@ -322,13 +348,14 @@ class ProfileField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 20),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -338,44 +365,45 @@ class ProfileField extends StatelessWidget {
   }
 }
 
-class DropdownField extends StatelessWidget {
-  final String label;
-  final String value;
-  final ValueChanged<String?> onChanged;
+// class DropdownField extends StatelessWidget {
+//   final String label;
+//   final String value;
+//   final ValueChanged<String?> onChanged;
 
-  const DropdownField({
-    Key? key,
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  }) : super(key: key);
+//   const DropdownField({
+//     Key? key,
+//     required this.label,
+//     required this.value,
+//     required this.onChanged,
+//   }) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 13, horizontal: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        items: [
-          DropdownMenuItem(
-            value: 'Nam',
-            child: Text('Nam'),
-          ),
-          DropdownMenuItem(
-            value: 'Nữ',
-            child: Text('Nữ'),
-          ),
-        ],
-        onChanged: onChanged,
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: const EdgeInsets.only(bottom: 20),
+//       child: DropdownButtonFormField<String>(
+//         value: value,
+//         decoration: InputDecoration(
+//           labelText: label,
+//           isDense: true,
+//           contentPadding:
+//               const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
+//           border: OutlineInputBorder(
+//             borderRadius: BorderRadius.circular(8),
+//           ),
+//         ),
+//         items: const [
+//           DropdownMenuItem(
+//             value: 'Nam',
+//             child: Text('Nam'),
+//           ),
+//           DropdownMenuItem(
+//             value: 'Nữ',
+//             child: Text('Nữ'),
+//           ),
+//         ],
+//         onChanged: onChanged,
+//       ),
+//     );
+//   }
+// }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:petshop/model/cart.dart';
 import 'package:petshop/popup/dialog_utils.dart';
-import 'package:petshop/screen/cart/cart_manager.dart';
+
+import '../../service/cart_service.dart';
 
 class CartItemCard extends StatelessWidget {
   final String productId;
@@ -38,7 +39,7 @@ class CartItemCard extends StatelessWidget {
         'Do you want to remove the item from the cart?',
       ),
       onDismissed: (direction) {
-        context.read<CartManager>().removeItem(productId);
+        context.read<CartService>().removeItem(productId);
         print('Cart item dismissed');
       },
       child: buildItemCard(),

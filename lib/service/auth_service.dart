@@ -133,7 +133,7 @@ class AuthService with ChangeNotifier {
     return result.data?['tokenCreate'];
   }
 
-  // Logout function
+  // LOGOUT
   Future<void> logout() async {
     await removeToken(); // Xóa token khi đăng xuất
     _userData = null; // Xóa dữ liệu người dùng

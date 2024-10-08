@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:petshop/components/my_button.dart';
-import 'package:petshop/main.dart';
+
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/graphql_config.dart';
 import '../../components/my_text_field.dart';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-// import 'package:petshop/main.dart';
 import 'package:petshop/screen/cart/cart_item_card.dart';
-import 'package:petshop/screen/cart/cart_manager.dart';
-import 'package:petshop/screen/order/order_manager.dart';
+import 'package:petshop/service/order_service.dart';
 import 'package:provider/provider.dart';
+
+import '../../service/cart_service.dart';
 
 class CartScreen extends StatelessWidget {
   static const routeName = '/cart';
@@ -12,7 +12,7 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cart = context.watch<CartManager>();
+    final cart = context.watch<CartService>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Giỏ hàng'),
@@ -31,7 +31,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget buildCartDetail(CartManager cart) {
+  Widget buildCartDetail(CartService cart) {
     return ListView(
         children: cart.productEntries
             .map(
@@ -43,7 +43,7 @@ class CartScreen extends StatelessWidget {
             .toList());
   }
 
-  Widget buildCartSummary(CartManager cart, BuildContext context) {
+  Widget buildCartSummary(CartService cart, BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(15),
       child: Padding(
@@ -69,7 +69,7 @@ class CartScreen extends StatelessWidget {
               onPressed: cart.totalAmount <= 0
                   ? null
                   : () {
-                      context.read<OrdersManager>().addOrder(
+                      context.read<OrderService>().addOrder(
                             cart.products,
                             cart.totalAmount,
                           );

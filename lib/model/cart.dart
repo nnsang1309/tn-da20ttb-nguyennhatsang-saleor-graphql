@@ -10,6 +10,7 @@ class CartItem {
     required this.quantity,
     required this.price,
   });
+
   CartItem copyWith({
     String? id,
     String? title,

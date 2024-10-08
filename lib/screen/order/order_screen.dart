@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:petshop/screen/order/order_item_card.dart';
-import 'package:petshop/screen/order/order_manager.dart';
 import 'package:provider/provider.dart';
+
+import '../../service/order_service.dart';
 
 class OrdersScreen extends StatelessWidget {
   static const routeName = '/order';
@@ -14,7 +15,7 @@ class OrdersScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Your Orders'),
       ),
-      body: Consumer<OrdersManager>(builder: (ctx, ordersManager, child) {
+      body: Consumer<OrderService>(builder: (ctx, ordersManager, child) {
         return ListView.builder(
           itemCount: ordersManager.orderCount,
           itemBuilder: (context, i) => OrderItemCard(ordersManager.orders[i]),

@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:petshop/model/cart.dart';
 import 'package:petshop/model/order.dart';
 
-class OrdersManager with ChangeNotifier {
+class OrderService with ChangeNotifier {
   final List<OrderItem> _orders = [];
   int get orderCount {
     return _orders.length;
