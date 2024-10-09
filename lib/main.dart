@@ -10,13 +10,13 @@ import 'package:petshop/screen/product/product_overview_screen.dart';
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/cart_service.dart';
 import 'package:petshop/service/graphql_config.dart';
+import 'package:petshop/service/loading_service.dart';
 import 'package:petshop/service/login_or_register.dart';
 import 'package:petshop/service/order_service.dart';
 import 'package:petshop/service/product_service.dart';
 import 'package:petshop/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_it/get_it.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +28,9 @@ void main() async {
   // Kiểm tra token khi khởi động
   final authService = AuthService();
   final token = await authService.getToken();
+  final GetIt sl = GetIt.instance;
+
+  sl.registerLazySingleton<LoadingService>(() => LoadingService());
 
   runApp(MyApp(client: client, token: token));
 }

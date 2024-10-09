@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:petshop/Utils/utils.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,6 +106,8 @@ class AuthService with ChangeNotifier {
         user {
           id
           email
+          firstName
+          lastName
         }   
         errors {
           field
@@ -133,12 +136,48 @@ class AuthService with ChangeNotifier {
     return result.data?['tokenCreate'];
   }
 
-  // LOGOUT
-  Future<void> logout() async {
-    await removeToken(); // Xóa token khi đăng xuất
-    _userData = null; // Xóa dữ liệu người dùng
-    notifyListeners(); // Thông báo cho các listener
-    print('Đăng xuất thành công!');
+  Future<void> logout(String pluginId) async {
+    const String logoutMutation = '''
+  mutation externalLogout(\$input: JSONString!, \$pluginId: String!) {
+    externalLogout(input: \$input, pluginId: \$pluginId) {
+      accountErrors {
+        field
+        message
+      }
+    }
+  }
+  ''';
+
+    final String inputJson = '{}';
+
+    final MutationOptions options = MutationOptions(
+      document: gql(logoutMutation),
+      variables: {
+        'input': inputJson,
+        'pluginId': pluginId,
+      },
+    );
+
+    final QueryResult result = await client.value.mutate(options);
+
+    if (result.hasException) {
+      print('Logout error: ${result.exception.toString()}');
+    } else {
+      final List<dynamic> accountErrors =
+          result.data?['externalLogout']['accountErrors'];
+
+      if (accountErrors.isNotEmpty) {
+        List<String> messages = [];
+        // Nếu có lỗi, in ra lỗi
+        accountErrors.forEach((error) {
+          messages.add(error?['message']);
+          Utils().showToast(messages.toString(), ToastType.failed);
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+      }
+    }
   }
 
   // Register function (thêm sau nếu cần)
@@ -150,5 +189,74 @@ class AuthService with ChangeNotifier {
   Future<bool> isLoggedIn() async {
     final token = await getToken();
     return token != null;
+  }
+
+  Future<Map<String, dynamic>?> register({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String redirectUrl,
+  }) async {
+    const String registerMutation = '''
+  mutation accountRegister(\$email: String!, \$password: String!, \$firstName: String!, \$lastName: String!, \$redirectUrl: String!) {
+    accountRegister(input: { email: \$email, password: \$password, firstName: \$firstName, lastName: \$lastName, redirectUrl: \$redirectUrl }) {
+      accountErrors {
+        field
+        message
+      }
+      user {
+        id
+        email
+        firstName
+        lastName
+        isActive
+        isStaff
+        dateJoined
+        lastLogin
+        languageCode
+        defaultShippingAddress {
+          streetAddress1
+          city
+          postalCode
+        }
+        defaultBillingAddress {
+          streetAddress1
+          city
+          postalCode
+        }
+        addresses {
+          streetAddress1
+          city
+          postalCode
+        }
+        avatar {
+          url
+        }
+      }
+    }
+  }
+  ''';
+
+    final MutationOptions options = MutationOptions(
+      document: gql(registerMutation),
+      variables: {
+        'email': email,
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+        'redirectUrl': redirectUrl,
+        'channelSlug': 'default'
+      },
+    );
+
+    final QueryResult result = await client.value.mutate(options);
+
+    if (result.hasException) {
+      print(result.exception.toString());
+      return null;
+    }
+
+    return result.data;
   }
 }

@@ -3,9 +3,17 @@
 // import 'package:app/services/auth/auth_service.dart';
 // import 'package:app/components/my_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:petshop/Utils/utils.dart';
+import 'package:petshop/common/app_constants.dart';
+import 'package:petshop/components/button_custom_content.dart';
+import 'package:petshop/components/loading.dart';
+import 'package:petshop/service/auth_service.dart';
+import 'package:petshop/service/loading_service.dart';
+import 'package:petshop/themes/colors.dart';
 
-import '../../components/my_button.dart';
-import '../../components/my_text_field.dart';
+import '../../components/button_base.dart';
+import '../../components/input_base.dart';
 
 /*
   REGISTER PAGE
@@ -26,174 +34,204 @@ import '../../components/my_text_field.dart';
 */
 
 class RegisterScreen extends StatefulWidget {
-  final void Function()? onTap;
-
-  const RegisterScreen({super.key, required this.onTap});
+  const RegisterScreen({
+    super.key,
+  });
 
   @override
   State<RegisterScreen> createState() => _RegisterScreen();
 }
 
 class _RegisterScreen extends State<RegisterScreen> {
-  // access auth service
-  // final _auth = AuthService();
+  final _auth = AuthService();
+  final LoadingService loadingService = GetIt.I<LoadingService>();
+  bool isValidEmail(String email) {
+    final RegExp regex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
 
-  // Text controllers
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController pwController = TextEditingController();
-  final TextEditingController confirmPwController = TextEditingController();
+    return regex.hasMatch(email);
+  }
 
   // register button tapped
-  // void register() async {
-  //   //passwords match -> create user
-  //   if (pwController.text == confirmPwController.text) {
-  //     // show loading circle
-  //     showLoadingCircle(context);
+  void register() async {
+    if (!isValidEmail(email)) {
+      Utils().showToast('Email không hợp lệ', ToastType.failed);
+      return;
+    }
+    int id = loadingService.showLoading();
+    if (password == rePassword) {
+      // attempt to register new user
+      try {
+        // trying to register...
+        final response = await _auth.register(
+          email: email,
+          password: password,
+          firstName: userName,
+          lastName: '',
+          redirectUrl: AppConstants.trustURL,
+        );
+        loadingService.hideLoading(id);
+        if ((response?['accountRegister']?['accountErrors']) is List &&
+            (response?['accountRegister']?['accountErrors'] as List).isEmpty) {
+          Utils().showToast('Đăng ký tài khoản thành công', ToastType.success);
+          Navigator.of(context).pop();
+          return;
+        }
+        if ((response?['accountRegister']?['accountErrors']) is List &&
+            (response?['accountRegister']?['accountErrors'] as List)
+                .isNotEmpty) {
+          List<String> errs = [];
+          (response?['accountRegister']?['accountErrors'] as List)
+              .forEach((err) {
+            errs.add(err['message'] ?? '');
+          });
+          Utils().showToast(errs.toString(), ToastType.failed);
 
-  //     // attempt to register new user
-  //     try {
-  //       // trying to register...
-  //       await _auth.registerEmailPassword(
-  //         emailController.text,
-  //         pwController.text,
-  //       );
+          return;
+        }
 
-  //       // finished loading...
-  //       if (mounted) hideLoadingCircle(context);
-  //     }
-  //     // catch any errors...
-  //     catch (e) {
-  //       // finished loading...
-  //       if (mounted) hideLoadingCircle(context);
+        Utils().showToast('Đăng ký tài khoản thất bại', ToastType.failed);
+      }
+      // catch any errors...
+      catch (e) {
+        loadingService.hideLoading(id);
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(e.toString()),
+            ),
+          );
+        }
+      }
+    } else {
+      loadingService.hideLoading(id);
+      Utils().showToast(
+          'Mật khẩu và Nhập lại mật khẩu không trùng khớp', ToastType.failed);
+    }
+  }
 
-  //       // let user know of the error
-  //       if (mounted) {
-  //         showDialog(
-  //           context: context,
-  //           builder: (context) => AlertDialog(
-  //             title: Text(e.toString()),
-  //           ),
-  //         );
-  //       }
-  //     }
-  //   }
-
-  //passwords don't match -> show error
-
-  //   else {
-  //     showDialog(
-  //       context: context,
-  //       builder: (context) => AlertDialog(
-  //         title: Text("Password don't match!"),
-  //       ),
-  //     );
-  //   }
-  // }
+  String userName = '';
+  String email = '';
+  String password = '';
+  String rePassword = '';
 
   // BUILD UI
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      // BODY
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                // Logo
-                Icon(
-                  Icons.lock_open_rounded,
-                  size: 72,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 50),
+    return LoadingOverlay(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        // BODY
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/pet_shop_logo.jpg'),
 
-                // Create an account message
-                Text(
-                  "Đăng ký tài khoản",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 16,
+                  const SizedBox(height: 25),
+
+                  // name textfield
+                  InputBase(
+                    hintText: "Nhập tên",
+                    obscureText: false,
+                    onChanged: (text) {
+                      setState(() {
+                        userName = text.trim();
+                      });
+                    },
                   ),
-                ),
 
-                const SizedBox(height: 25),
+                  const SizedBox(height: 10),
 
-                // name textfield
-                MyTextField(
-                  controller: nameController,
-                  hintText: "Nhập tên",
-                  obscureText: false,
-                ),
+                  // email textfield
+                  InputBase(
+                    hintText: "Nhập email",
+                    obscureText: false,
+                    onChanged: (text) {
+                      setState(() {
+                        email = text.trim();
+                      });
+                    },
+                  ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                // email textfield
-                MyTextField(
-                  controller: emailController,
-                  hintText: "Nhập email",
-                  obscureText: false,
-                ),
+                  // password textfield
+                  InputBase(
+                    onChanged: (text) {
+                      setState(() {
+                        password = text.trim();
+                      });
+                    },
+                    hintText: "Nhập mật khẩu",
+                    obscureText: true,
+                  ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                // password textfield
-                MyTextField(
-                  controller: pwController,
-                  hintText: "Nhập mật khẩu",
-                  obscureText: true,
-                ),
+                  // confirm password textfield
+                  InputBase(
+                    onChanged: (text) {
+                      setState(() {
+                        rePassword = text.trim();
+                      });
+                    },
+                    hintText: "Nhập lại mật khẩu",
+                    obscureText: true,
+                  ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                // confirm password textfield
-                MyTextField(
-                  controller: confirmPwController,
-                  hintText: "Nhập lại mật khẩu",
-                  obscureText: true,
-                ),
+                  //sign up button
+                  ButtonBase(
+                    text: "Đăng ký",
+                    onTap: (userName.isNotEmpty &&
+                            password.isNotEmpty &&
+                            password.isNotEmpty &&
+                            rePassword.isNotEmpty)
+                        ? register
+                        : null,
+                  ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 50),
 
-                //sign up button
-                MyButton(
-                  text: "Đăng ký",
-                  onTap: () {},
-                ),
-
-                const SizedBox(height: 50),
-
-                // already a member? login here
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Đã có tài khoản?",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // User can tap this to go to login page
-                    GestureDetector(
-                      onTap: widget.onTap,
-                      child: Text(
-                        "Đăng nhập",
+                  // already a member? login here
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Đã có tài khoản?",
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 10),
+
+                      // User can tap this to go to login page
+                      ButtonCustomContent(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          "Đăng nhập",
+                          style: TextStyle(
+                            color: AppColors.primary_700,
+                            fontWeight: FontWeight.bold,
+                            decorationStyle: TextDecorationStyle.solid,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primary_700,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

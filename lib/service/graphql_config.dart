@@ -6,6 +6,7 @@ class GraphqlConfig {
   static ValueNotifier<GraphQLClient> initializeClient() {
     // Tạo HttpLink với URL đến endpoint GraphQL của Saleor
     final HttpLink httpLink = HttpLink(
+      // 'https://saleor-nguyen-nhat-sang.eu.saleor.cloud/graphql/',
       'https://pet-store.saleor.cloud/graphql/',
     );
 

@@ -20,7 +20,7 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   // Logout function
   void _logout() async {
-    await _authService.logout();
+    await _authService.logout('Global');
     if (mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(

@@ -1,36 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:petshop/components/my_button.dart';
+import 'package:petshop/Utils/utils.dart';
+import 'package:petshop/common/app_constants.dart';
+import 'package:petshop/components/button_base.dart';
+import 'package:petshop/components/button_custom_content.dart';
+import 'package:petshop/components/loading.dart';
+import 'package:petshop/screen/auth/register.dart';
 
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/graphql_config.dart';
-import '../../components/my_text_field.dart';
+import 'package:petshop/service/loading_service.dart';
+import 'package:petshop/themes/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../components/input_base.dart';
 import '../home_page.dart';
+import 'package:get_it/get_it.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function()? onTap;
 
-  LoginScreen({super.key, this.onTap});
+  const LoginScreen({super.key, this.onTap});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+  String email = '';
+  String password = '';
+  final LoadingService loadingService = GetIt.I<LoadingService>();
 
   void _login() async {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-
-    // Start login process
+    int loadingId = loadingService.showLoading();
     final response = await _authService.loginUser(email, password);
-
+    loadingService.hideLoading(loadingId);
     if (response != null && response['token'] != null) {
+      final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setString(AppConstants.keyToken, response['token']);
+      await sharedPreferences.setString(AppConstants.keyRefreshToken, response['refreshToken']);
       if (mounted) {
-        print('Login successful');
         // Navigate to MyHomePage
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -42,6 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else {
+      Utils().showToast(
+          'Tài khoản hoặc mật khẩu không chính xác', ToastType.failed);
       if (mounted) {
         // Check if the state is still mounted
         print('Login failed');
@@ -50,82 +60,102 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                Icon(
-                  Icons.lock_open_rounded,
-                  size: 72,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 50),
-                Text(
-                  "Xin chào",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.primary,
+    return LoadingOverlay(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 70),
+            child: Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/pet_shop_logo.jpg'),
+                  const SizedBox(height: 25),
+                  InputBase(
+                    hintText: "Nhập email",
+                    obscureText: false,
+                    onChanged: (text) {
+                      setState(() {
+                        email = text;
+                      });
+                    },
                   ),
-                ),
-                const SizedBox(height: 25),
-                MyTextField(
-                  controller: _emailController,
-                  hintText: "Nhập email",
-                  obscureText: false,
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: _passwordController,
-                  hintText: "Nhập mật khẩu",
-                  obscureText: true,
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    'Quên mật khẩu?',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const SizedBox(height: 10),
+                  InputBase(
+                    hintText: "Nhập mật khẩu",
+                    obscureText: true,
+                    onChanged: (text) {
+                      setState(() {
+                        password = text;
+                      });
+                    },
                   ),
-                ),
-                const SizedBox(height: 25),
-                MyButton(
-                  text: "Đăng nhập",
-                  onTap: _login,
-                ),
-                const SizedBox(height: 50),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Chưa có tài khoản?",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: widget.onTap,
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ButtonCustomContent(
+                      radius: BorderRadius.circular(4),
+                      onTap: () {},
                       child: Text(
-                        "Đăng ký",
+                        'Quên mật khẩu?',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: AppColors.primary_700,
                           fontWeight: FontWeight.bold,
+                          decorationStyle: TextDecorationStyle.solid,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.primary_700,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 25),
+                  ButtonBase(
+                    text: "Đăng nhập",
+                    onTap:
+                        email.isNotEmpty && password.isNotEmpty ? _login : null,
+                  ),
+                  const SizedBox(height: 50),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Chưa có tài khoản?",
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ButtonCustomContent(
+                        radius: BorderRadius.circular(4),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Đăng ký',
+                          style: TextStyle(
+                            color: AppColors.primary_700,
+                            fontWeight: FontWeight.bold,
+                            decorationStyle: TextDecorationStyle.solid,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primary_700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
