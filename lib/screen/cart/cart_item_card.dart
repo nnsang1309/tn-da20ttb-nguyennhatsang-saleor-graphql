@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:petshop/model/checkout_response_modal.dart';
 import 'package:provider/provider.dart';
 import 'package:petshop/model/cart.dart';
 import 'package:petshop/popup/dialog_utils.dart';
@@ -6,11 +7,9 @@ import 'package:petshop/popup/dialog_utils.dart';
 import '../../service/cart_service.dart';
 
 class CartItemCard extends StatelessWidget {
-  final String productId;
-  final CartItem cartItem;
+  final CheckoutLineCheckoutResponse cartItem;
 
   const CartItemCard({
-    required this.productId,
     required this.cartItem,
     super.key,
   });
@@ -18,7 +17,7 @@ class CartItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(cartItem.id),
+      key: ValueKey(cartItem?.variant),
       background: Container(
         color: Theme.of(context).colorScheme.error,
         alignment: Alignment.centerRight,
@@ -39,7 +38,6 @@ class CartItemCard extends StatelessWidget {
         'Do you want to remove the item from the cart?',
       ),
       onDismissed: (direction) {
-        context.read<CartService>().removeItem(productId);
         print('Cart item dismissed');
       },
       child: buildItemCard(),
@@ -59,13 +57,13 @@ class CartItemCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(5),
               child: FittedBox(
-                child: Text('\$${cartItem.price}'),
+                child: Text('\$${'cartItem.price'}'),
               ),
             ),
           ),
-          title: Text(cartItem.title),
-          subtitle: Text('Total: \$${cartItem.price * cartItem.quantity}'),
-          trailing: Text('${cartItem.quantity}x'),
+          title: Text(cartItem?.variant.product.name ?? ''),
+          subtitle: Text('Total: \$${'cartItem.price * cartItem.quantity'}'),
+          trailing: Text('${cartItem?.quantity}x'),
         ),
       ),
     );

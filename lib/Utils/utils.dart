@@ -26,7 +26,7 @@ class Utils {
       gravity: ToastGravity.TOP,
       timeInSecForIosWeb: 4,
       backgroundColor:
-          type == ToastType.failed ? Colors.red : AppColors.primary_700,
+          type == ToastType.failed ? Colors.red : Utils().hexToColor('#2ecc71'),
       textColor: Colors.white,
       fontSize: 16.0,
     );

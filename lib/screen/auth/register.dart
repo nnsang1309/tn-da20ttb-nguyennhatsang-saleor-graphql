@@ -43,7 +43,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreen extends State<RegisterScreen> {
-  final _auth = AuthService();
+  final _auth = AuthService(ignoreToken: true);
   final LoadingService loadingService = GetIt.I<LoadingService>();
   bool isValidEmail(String email) {
     final RegExp regex = RegExp(
@@ -53,10 +53,41 @@ class _RegisterScreen extends State<RegisterScreen> {
     return regex.hasMatch(email);
   }
 
+  static bool validatePhone(String? phone) {
+    if (phone == null || phone.isEmpty) {
+      return false;
+    }
+
+    // Thay thế +84 bằng 0
+    String newPhone = phone.replaceFirst('+84', '0');
+
+    // Kiểm tra xem số có bắt đầu bằng 84 không và thay thế bằng 0
+    String code = newPhone.substring(0, 2);
+    if (code == '84') {
+      newPhone = '0' + newPhone.substring(2);
+    }
+
+    // Kiểm tra xem chuỗi chỉ chứa số
+    if (!RegExp(r'^[0-9\b]+$').hasMatch(newPhone)) {
+      return false;
+    }
+
+    // Kiểm tra định dạng hợp lệ của số điện thoại
+    bool valid = RegExp(r'^(03|05|07|08|09|01[2|6|8|9]|02[0-9])+([0-9]{8})\b')
+        .hasMatch(newPhone);
+    bool valid1 = RegExp(r'^(19|18)+([0-9]{6,9})\b').hasMatch(newPhone);
+
+    return valid || valid1;
+  }
+
   // register button tapped
   void register() async {
     if (!isValidEmail(email)) {
       Utils().showToast('Email không hợp lệ', ToastType.failed);
+      return;
+    }
+    if (!validatePhone(phoneNumber)) {
+      Utils().showToast('Số điện thoại không hợp lệ', ToastType.failed);
       return;
     }
     int id = loadingService.showLoading();
@@ -68,7 +99,7 @@ class _RegisterScreen extends State<RegisterScreen> {
           email: email,
           password: password,
           firstName: userName,
-          lastName: '',
+          lastName: phoneNumber,
           redirectUrl: AppConstants.trustURL,
         );
         loadingService.hideLoading(id);
@@ -116,6 +147,7 @@ class _RegisterScreen extends State<RegisterScreen> {
   String email = '';
   String password = '';
   String rePassword = '';
+  String phoneNumber = '';
 
   // BUILD UI
   @override
@@ -161,6 +193,19 @@ class _RegisterScreen extends State<RegisterScreen> {
 
                   const SizedBox(height: 10),
 
+                  // email textfield
+                  InputBase(
+                    hintText: "Nhập số điện thoại",
+                    obscureText: false,
+                    onChanged: (text) {
+                      setState(() {
+                        phoneNumber = text.trim();
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
                   // password textfield
                   InputBase(
                     onChanged: (text) {
@@ -191,7 +236,8 @@ class _RegisterScreen extends State<RegisterScreen> {
                   ButtonBase(
                     text: "Đăng ký",
                     onTap: (userName.isNotEmpty &&
-                            password.isNotEmpty &&
+                            email.isNotEmpty &&
+                            phoneNumber.isNotEmpty &&
                             password.isNotEmpty &&
                             rePassword.isNotEmpty)
                         ? register

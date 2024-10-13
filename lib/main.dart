@@ -79,9 +79,7 @@ class MyApp extends StatelessWidget {
                   if (settings.name == ProductDetailScreen.routeName) {
                     final productID = settings.arguments as String;
                     return MaterialPageRoute(builder: (ctx) {
-                      return ProductDetailScreen(
-                        ctx.read<ProductService>().findById(productID)!,
-                      );
+                      return Container();
                     });
                   }
                   return null;

@@ -3,7 +3,7 @@
 // ----------- getProductsList ---------------
 const String getProductsList = r'''
 query getProductsList {
-  products(first: 20, channel: "channel-vnd") {
+  products(first: 20, channel: "default-channel") {
     edges {
       node {
         id
@@ -49,7 +49,7 @@ query getProductsList {
 
 // ----------- getProductDetailById ---------------
 const String getProductById = r'''
-  query GetProductById($productId: ID!, $channel: String = "channel-vnd") {
+  query GetProductById($productId: ID!, $channel: String = "default-channel") {
     product(id: $productId, channel: $channel) {
       id
       name

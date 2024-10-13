@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:petshop/common/app_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphqlConfig {
   // Phương thức khởi tạo GraphQL client
-  static ValueNotifier<GraphQLClient> initializeClient() {
+  static ValueNotifier<GraphQLClient> initializeClient({String? token}) {
     // Tạo HttpLink với URL đến endpoint GraphQL của Saleor
     final HttpLink httpLink = HttpLink(
       // 'https://saleor-nguyen-nhat-sang.eu.saleor.cloud/graphql/',
@@ -12,7 +14,7 @@ class GraphqlConfig {
 
     // Tạo AuthLink để thêm token xác thực vào mỗi request
     final AuthLink authLink = AuthLink(
-      getToken: () async => 'Bearer YOUR_AUTH_TOKEN',
+      getToken: () async => token != null ? 'Bearer $token' : '',
     );
 
     // Tạo Link bằng cách kết hợp HttpLink và AuthLink

@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:petshop/themes/colors.dart';
 
 class ButtonBase extends StatefulWidget {
-  const ButtonBase({
-    super.key,
-    required this.text,
-    this.onTap,
-  });
+  const ButtonBase(
+      {super.key, required this.text, this.onTap, this.customBackgroundColor});
   final String text;
+  final Color? customBackgroundColor;
   final void Function()? onTap;
   @override
   State<ButtonBase> createState() => _ButtonBaseState();
@@ -23,8 +21,10 @@ class _ButtonBaseState extends State<ButtonBase> {
   Widget build(BuildContext context) {
     return Material(
       borderRadius: BorderRadius.circular(12),
-      color:
-          widget.onTap != null ? AppColors.primary_700 : AppColors.primary_100,
+      color: widget.customBackgroundColor ??
+          (widget.onTap != null
+              ? AppColors.primary_700
+              : AppColors.primary_100),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: widget.onTap,

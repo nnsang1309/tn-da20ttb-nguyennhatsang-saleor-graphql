@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:petshop/Utils/utils.dart';
 import 'package:petshop/common/app_constants.dart';
@@ -25,7 +27,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
+  final AuthService _authService = AuthService(ignoreToken: true);
   String email = '';
   String password = '';
   final LoadingService loadingService = GetIt.I<LoadingService>();
@@ -35,9 +37,24 @@ class _LoginScreenState extends State<LoginScreen> {
     final response = await _authService.loginUser(email, password);
     loadingService.hideLoading(loadingId);
     if (response != null && response['token'] != null) {
-      final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-      await sharedPreferences.setString(AppConstants.keyToken, response['token']);
-      await sharedPreferences.setString(AppConstants.keyRefreshToken, response['refreshToken']);
+      final SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      await sharedPreferences.setString(
+          AppConstants.keyToken, response['token']);
+      await sharedPreferences.setString(
+          AppConstants.keyRefreshToken, response['refreshToken']);
+      if (response['user']?['checkoutIds'] != null &&
+          response['user']?['checkoutIds'] is List &&
+          (response['user']?['checkoutIds'] as List).isNotEmpty) {
+        await sharedPreferences.setString(AppConstants.keyCheckoutId,
+            (response['user']?['checkoutIds'] as List).first);
+      }
+      if (response['user']?['defaultBillingAddress'] != null) {
+        await sharedPreferences.setString(
+          AppConstants.keyAddress,
+          jsonEncode(response['user']?['defaultBillingAddress']),
+        );
+      }
       if (mounted) {
         // Navigate to MyHomePage
         Navigator.of(context).pushReplacement(
