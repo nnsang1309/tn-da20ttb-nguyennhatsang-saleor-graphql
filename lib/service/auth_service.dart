@@ -169,6 +169,7 @@ class AuthService with ChangeNotifier {
 
     final QueryOptions options = QueryOptions(
       document: gql(getUserQuery),
+      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await client.value.query(options);

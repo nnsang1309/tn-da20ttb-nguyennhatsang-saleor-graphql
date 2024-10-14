@@ -265,7 +265,7 @@ class _CartScreenState extends State<CartScreen> {
 
   String formatCurrency(double amount) {
     final format =
-        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: '\$');
+        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: AppConstants.subValuePrice);
     return format.format(amount);
   }
 }

@@ -173,10 +173,11 @@ class _NestedTabBarState extends State<NestedTabBar>
     if (categorySelected?['id'] == null) {
       return;
     }
-    final response = await authService
-        .fetchProductsForUser(categorySelected?['id'], 'default-channel', filter: {
-      'search': valueSearch,
-    });
+    final response = await authService.fetchProductsForUser(
+        categorySelected?['id'], AppConstants.channelDefault,
+        filter: {
+          'search': valueSearch,
+        });
     loadingService.hideLoading(idLoading);
 
     setState(() {
@@ -414,7 +415,8 @@ class _NestedTabBarState extends State<NestedTabBar>
   }
 
   String formatCurrency(double amount) {
-    final format = NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: '\$');
+    final format =
+        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: AppConstants.subValuePrice);
     return format.format(amount);
   }
 }
