@@ -28,8 +28,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService(ignoreToken: true);
-  String email = '';
-  String password = '';
+  String email = 'linhnew@gmail.com';
+  String password = '1';
   final LoadingService loadingService = GetIt.I<LoadingService>();
 
   void _login() async {

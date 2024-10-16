@@ -105,10 +105,9 @@ class Price {
   });
 
   factory Price.fromMap(Map<String, dynamic> map) {
-    print('object------------------------$map');
     return Price(
-      amount: map?['amount'] ?? 0.0, // Kiểm tra null và loại số
-      currency: map?['currency'] ?? '', // Kiểm tra null cho currency
+      amount: map['amount'] ?? 0.0, // Kiểm tra null và loại số
+      currency: map['currency'] ?? '', // Kiểm tra null cho currency
     );
   }
 }

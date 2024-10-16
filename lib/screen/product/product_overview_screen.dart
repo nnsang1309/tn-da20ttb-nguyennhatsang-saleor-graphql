@@ -13,6 +13,7 @@ import 'package:petshop/model/product_model.dart';
 import 'package:petshop/screen/product/product_detail_screen.dart';
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/loading_service.dart';
+import 'package:petshop/service/product_service.dart';
 import 'package:petshop/themes/colors.dart';
 
 enum TabType { dog, cat, rabbit }
@@ -153,6 +154,7 @@ class _NestedTabBarState extends State<NestedTabBar>
   final LoadingService loadingService = GetIt.I<LoadingService>();
   dynamic categorySelected;
   final AuthService authService = AuthService();
+  final ProductService productService = ProductService();
   List<ProductModel>? products;
   @override
   void initState() {
@@ -173,10 +175,11 @@ class _NestedTabBarState extends State<NestedTabBar>
     if (categorySelected?['id'] == null) {
       return;
     }
-    final response = await authService
-        .fetchProductsForUser(categorySelected?['id'], 'default-channel', filter: {
-      'search': valueSearch,
-    });
+    final response = await productService.fetchProductsForUser(
+        categorySelected?['id'], AppConstants.channelDefault,
+        filter: {
+          'search': valueSearch,
+        });
     loadingService.hideLoading(idLoading);
 
     setState(() {
@@ -191,7 +194,7 @@ class _NestedTabBarState extends State<NestedTabBar>
       categories = widget.categories;
       categorySelected = widget.categories.isNotEmpty ? categories.first : null;
     });
-    Future.delayed(Duration(microseconds: 250), () {
+    Future.delayed(const Duration(microseconds: 250), () {
       if (categorySelected != null) {
         handleGetProduct();
       }
@@ -414,7 +417,8 @@ class _NestedTabBarState extends State<NestedTabBar>
   }
 
   String formatCurrency(double amount) {
-    final format = NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: '\$');
+    final format = NumberFormat.currency(
+        locale: 'vi_VN', decimalDigits: 0, symbol: AppConstants.subValuePrice);
     return format.format(amount);
   }
 }

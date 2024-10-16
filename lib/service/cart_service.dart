@@ -1,76 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:petshop/model/cart.dart';
-import 'package:petshop/model/product.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:petshop/common/app_constants.dart';
+import 'package:petshop/model/checkout_response_modal.dart';
+import 'package:petshop/service/graphql_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartService with ChangeNotifier {
-  Map<String, CartItem> _items = {};
-  int get productCount {
-    return _items.length;
+  late ValueNotifier<GraphQLClient> client = GraphqlConfig.initializeClient();
+
+  CartService({bool? ignoreToken}) {
+    _initializeClient(ignoreToken: ignoreToken);
   }
 
-  List<CartItem> get products {
-    return _items.values.toList();
+  Future<void> _initializeClient({bool? ignoreToken}) async {
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
+    final token = sharedPreferences.getString(AppConstants.keyToken);
+    client = GraphqlConfig.initializeClient(
+        token: ignoreToken == true ? null : token);
+    notifyListeners();
   }
 
-  Iterable<MapEntry<String, CartItem>> get productEntries {
-    return {..._items}.entries;
-  }
-
-  double get totalAmount {
-    var total = 0.0;
-    _items.forEach((key, cartItem) {
-      total += cartItem.price * cartItem.quantity;
-    });
-    return total;
-  }
-
-  void addItem(Product product) {
-    if (_items.containsKey(product.id)) {
-      //change quantity...
-      _items.update(
-        product.id!,
-        (existingCartItem) => existingCartItem.copyWith(
-          quantity: existingCartItem.quantity + 1,
-        ),
-      );
-    } else {
-      _items.putIfAbsent(
-        product.id!,
-        () => CartItem(
-          id: 'c${DateTime.now().toIso8601String()}',
-          title: product.name,
-          price: product.pricing,
-          quantity: 1,
-        ),
-      );
+  Future<CheckoutResponse?> fetchDataCart(String checkoutId) async {
+    const String getCheckoutQuery = '''
+    query GetCheckout(\$checkoutId: ID!) {
+      checkout(id: \$checkoutId) {
+        id
+        lines {
+          quantity
+          variant {
+            id
+            name
+            product {
+              name
+              thumbnail {
+                url
+              }
+              pricing {
+                priceRange {
+                  start {
+                    net {
+                      currency
+                      amount
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        totalPrice {
+          gross {
+            amount
+            currency
+          }
+        }
+      }
     }
-    notifyListeners();
-  }
+  ''';
 
-  void removeItem(String productId) {
-    _items.remove(productId);
-    notifyListeners();
-  }
+    final QueryOptions options = QueryOptions(
+      document: gql(getCheckoutQuery),
+      variables: {
+        'checkoutId': checkoutId,
+      },
+    );
 
-  void removeSingleItem(String productId) {
-    if (!_items.containsKey(productId)) {
-      return;
+    try {
+      final QueryResult result = await client.value.query(options);
+
+      if (result.hasException) {
+        print('Error fetching checkout items: ${result.exception.toString()}');
+        return null;
+      }
+
+      final checkoutData = result.data?['checkout'];
+      if (checkoutData != null) {
+        return CheckoutResponse.fromMap({'checkout': checkoutData});
+      } else {
+        print('No checkout found for ID: $checkoutId');
+        return null;
+      }
+    } catch (e) {
+      print('An unexpected error occurred: $e');
+      return null;
     }
-    if (_items[productId]?.quantity as num > 1) {
-      _items.update(
-        productId,
-        (existingCartItem) => existingCartItem.copyWith(
-          quantity: existingCartItem.quantity - 1,
-        ),
-      );
-    } else {
-      _items.remove(productId);
-    }
-    notifyListeners();
-  }
-
-  void clear() {
-    _items = {};
-    notifyListeners();
   }
 }

@@ -8,6 +8,7 @@ import 'package:petshop/model/checkout_response_modal.dart';
 import 'package:petshop/model/user_model.dart';
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/loading_service.dart';
+import 'package:petshop/service/order_service.dart';
 import 'package:petshop/themes/colors.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,8 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final AuthService _authService = AuthService();
+  final CartService cartService = CartService();
+  final OrderService orderService = OrderService();
   final LoadingService loadingService = GetIt.I<LoadingService>();
   CheckoutResponse? checkoutResponse;
   UserInfo? userInfo;
@@ -39,7 +42,6 @@ class _CartScreenState extends State<CartScreen> {
 
     final response = await _authService.fetchUserInfo();
 
-    print('LINHHHH --- $response');
     loadingService.hideLoading(id);
     if (response == null) {
       Utils().showToast(
@@ -58,7 +60,7 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
     int id = loadingService.showLoading();
-    final response = await _authService.fetchCheckoutItems(checkOutId);
+    final response = await cartService.fetchDataCart(checkOutId);
     setState(() {
       checkoutResponse = response;
     });
@@ -88,7 +90,7 @@ class _CartScreenState extends State<CartScreen> {
           'Đã có lỗi xảy ra trong quá trình xử lý', ToastType.failed);
       return;
     }
-    final response = await _authService.placeOrder(checkOutId);
+    final response = await orderService.orderCheckoutById(checkOutId);
     loadingService.hideLoading(id);
     if (response == null) {
       Utils().showToast(
@@ -265,7 +267,7 @@ class _CartScreenState extends State<CartScreen> {
 
   String formatCurrency(double amount) {
     final format =
-        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: '\$');
+        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: AppConstants.subValuePrice);
     return format.format(amount);
   }
 }

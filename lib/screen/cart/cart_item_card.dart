@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:petshop/model/checkout_response_modal.dart';
-import 'package:provider/provider.dart';
-import 'package:petshop/model/cart.dart';
 import 'package:petshop/popup/dialog_utils.dart';
 
-import '../../service/cart_service.dart';
 
 class CartItemCard extends StatelessWidget {
   final CheckoutLineCheckoutResponse cartItem;
@@ -17,7 +14,7 @@ class CartItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey(cartItem?.variant),
+      key: ValueKey(cartItem.variant),
       background: Container(
         color: Theme.of(context).colorScheme.error,
         alignment: Alignment.centerRight,

@@ -1,5 +1,3 @@
-// lib/screen/product/product_detail_screen.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
@@ -11,7 +9,7 @@ import 'package:petshop/common/app_constants.dart';
 import 'package:petshop/components/button_custom_content.dart';
 import 'package:petshop/components/loading.dart';
 import 'package:petshop/model/product_model.dart';
-import 'package:petshop/service/auth_service.dart';
+import 'package:petshop/service/checkout_service.dart';
 import 'package:petshop/service/loading_service.dart';
 import 'package:petshop/themes/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +24,7 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  final AuthService _authService = AuthService();
+  final CheckoutService checkoutService = CheckoutService();
   final LoadingService loadingService = GetIt.I<LoadingService>();
   bool haveCheckout = false;
   handleAddToCart() async {
@@ -37,7 +35,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       loadingService.hideLoading(id);
       return;
     }
-    final response = await _authService.addToCart(
+    final response = await checkoutService.addToCart(
       currentCheckOutId,
       widget.product.variants!.first.id,
       1,
@@ -57,7 +55,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         await SharedPreferences.getInstance();
     String? token = sharedPreferences.getString(AppConstants.keyToken);
     Map<String, dynamic> deCodeToken = JwtDecoder.decode(token!);
-    final response = await _authService.createCheckout(
+    final response = await checkoutService.createCheckout(
       deCodeToken['email'] ?? '',
       [
         {"variantId": widget.product.variants?.first.id, "quantity": 1}
@@ -263,7 +261,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   String formatCurrency(double amount) {
     final format =
-        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: '\$');
+        NumberFormat.currency(locale: 'vi_VN', decimalDigits: 0, symbol: AppConstants.subValuePrice);
     return format.format(amount);
   }
 

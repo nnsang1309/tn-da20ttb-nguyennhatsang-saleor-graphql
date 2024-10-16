@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:petshop/common/app_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphqlConfig {
   // Phương thức khởi tạo GraphQL client

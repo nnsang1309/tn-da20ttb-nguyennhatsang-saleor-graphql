@@ -19,7 +19,9 @@ class AppConstants {
   static const String keyRabbitClothes = 'quan-ao-cho-tho';
   static const String keyRabbitItem = 'phu-kien-cho-tho';
 
-  static const String channelDefault = 'default-channel';
+  // static const String channelDefault = 'default-channel';
+  static const String channelDefault = 'channel-vnd';
+  static const String subValuePrice = 'VND';
 
   // Set checkoutId
   static Future<void> setCheckoutId(String checkoutId) async {

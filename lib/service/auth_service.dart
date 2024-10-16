@@ -5,26 +5,9 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:petshop/Utils/utils.dart';
 import 'package:petshop/common/app_constants.dart';
-import 'package:petshop/model/address_model.dart';
-import 'package:petshop/model/checkout_model.dart';
-import 'package:petshop/model/checkout_response_modal.dart';
-import 'package:petshop/model/product_model.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/*
-
-  AUTHENTICATION SERVICE
-
-  This handles everything to do with authentication
-
-  -------------------------------------------
-
-  - Login
-  - Register
-  - Logout
-  - Delete account (required if you want to publish to app store)
-*/
 @injectable
 class AuthService with ChangeNotifier {
   late ValueNotifier<GraphQLClient> client = GraphqlConfig.initializeClient();
@@ -37,7 +20,6 @@ class AuthService with ChangeNotifier {
     final SharedPreferences sharedPreferences =
         await SharedPreferences.getInstance();
     final token = sharedPreferences.getString(AppConstants.keyToken);
-    print('LIIII--- $token');
     client = GraphqlConfig.initializeClient(
         token: ignoreToken == true ? null : token);
     notifyListeners();
@@ -169,6 +151,7 @@ class AuthService with ChangeNotifier {
 
     final QueryOptions options = QueryOptions(
       document: gql(getUserQuery),
+      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await client.value.query(options);
@@ -181,23 +164,6 @@ class AuthService with ChangeNotifier {
     return result.data?['me'];
   }
 
-  //
-  Future<void> handleLogin(String email, String password) async {
-    final result = await loginUser(email, password);
-
-    if (checkLoginStatus(result)) {
-      // Xử lý khi đăng nhập thành công
-      _userData = result!['user'];
-      await saveToken(result['token']); // Lưu token
-      notifyListeners();
-      print('Đăng nhập thành công!');
-    } else {
-      // Xử lý khi đăng nhập thất bại
-      print('Đăng nhập thất bại!');
-    }
-  }
-
-  // Login function
   Future<Map<String, dynamic>?> loginUser(String email, String password) async {
     const String loginMutation = '''
     mutation TokenCreate(\$email: String!, \$password: String!) {
@@ -299,17 +265,6 @@ class AuthService with ChangeNotifier {
         await prefs.clear();
       }
     }
-  }
-
-  // Register function (thêm sau nếu cần)
-  // Future<Map<String, dynamic>?> registerUser(String email, String password) async {
-  //   // Xử lý đăng ký
-  // }
-
-  // Function to check if user is logged in
-  Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null;
   }
 
   Future<Map<String, dynamic>?> register({
@@ -421,68 +376,6 @@ class AuthService with ChangeNotifier {
     return result.data?['accountUpdate']?['user'];
   }
 
-  Future<List<ProductModel>?> fetchProductsForUser(
-      String categoryId, String channel,
-      {Map<String, dynamic>? filter}) async {
-    const String getProductsForUserQuery = '''
-  query GetProductsForUser(\$categoryId: ID!, \$first: Int, \$channel: String!, \$filter: ProductFilterInput) {
-    category(id: \$categoryId) {
-      products(first: \$first, channel: \$channel, filter: \$filter) {
-        edges {
-          node {
-            id
-            name
-            description
-            thumbnail {
-              url
-            }
-            media {
-              url
-            }
-            pricing {
-              priceRange {
-                start {
-                  net {
-                    amount
-                    currency
-                  }
-                }
-              }
-            }
-            variants {
-              id
-              name
-              sku
-            }
-          }
-        }
-      }
-    }
-  }
-  ''';
-
-    final QueryOptions options = QueryOptions(
-      document: gql(getProductsForUserQuery),
-      variables: {
-        'categoryId': categoryId,
-        'first': 100,
-        'channel': channel,
-        'filter': filter,
-      },
-    );
-
-    final QueryResult result = await client.value.query(options);
-
-    if (result.hasException) {
-      print('Error fetching products for user: ${result.exception.toString()}');
-      return [];
-    }
-
-    return result.data?['category']['products']['edges']
-        .map<ProductModel>((edge) => ProductModel.fromMap(edge['node']))
-        .toList();
-  }
-
   Future<List<dynamic>?> fetchCategories() async {
     const String getCategoriesQuery = '''
     query {
@@ -512,309 +405,6 @@ class AuthService with ChangeNotifier {
     return result.data?['categories']['edges']
         .map((edge) => edge['node'])
         .toList();
-  }
-
-  Future<Map<String, dynamic>?> createCheckout(
-      String email, List<Map<String, dynamic>> lines, String channel) async {
-    const String createCheckoutMutation = '''
-  mutation CreateCheckout(\$email: String!, \$lines: [CheckoutLineInput!]!, \$channel: String!) {
-    checkoutCreate(
-      input: {
-        email: \$email
-        lines: \$lines
-        channel: \$channel
-      }
-    ) {
-      checkout {
-        id
-        token
-        email
-        lines {
-          id
-          quantity
-          variant {
-            id
-            name
-          }
-        }
-      }
-      errors {
-        field
-        message
-      }
-    }
-  }
-  ''';
-
-    final MutationOptions options = MutationOptions(
-      document: gql(createCheckoutMutation),
-      variables: {
-        'email': email,
-        'lines': lines, // Danh sách sản phẩm với variantId và quantity
-        'channel': channel,
-      },
-    );
-
-    final QueryResult result = await client.value.mutate(options);
-
-    if (result.hasException) {
-      return null;
-    }
-
-    return result.data?['checkoutCreate'];
-  }
-
-  Future<List<CheckoutModel>?> fetchCheckouts(String channel) async {
-    const String getCheckoutsQuery = '''
-  query GetCheckouts(\$channel: String) {
-    checkouts(channel: \$channel, first: 5) {
-      edges {
-        node {
-          id
-          token
-          email
-          created
-          totalPrice {
-            gross {
-              amount
-              currency
-            }
-          }
-          lines {
-            variant {
-              product {
-                name
-              }
-            }
-            quantity
-          }
-        }
-      }
-    }
-  }
-  ''';
-
-    final QueryOptions options = QueryOptions(
-      document: gql(getCheckoutsQuery),
-      variables: {
-        'channel': channel,
-      },
-    );
-
-    final QueryResult result = await client.value.query(options);
-
-    if (result.hasException) {
-      print('Error fetching checkouts: ${result.exception.toString()}');
-      return null; // Hoặc xử lý lỗi theo cách khác
-    }
-
-    return result.data?['checkouts']['edges']
-        .map<CheckoutModel>((edge) => CheckoutModel.fromMap(edge['node']))
-        .toList();
-  }
-
-  Future<bool> addToCart(
-      String checkoutId, String variantId, int quantity) async {
-    const String addToCartMutation = '''
-    mutation CheckoutLinesAdd(\$checkoutId: ID!, \$lines: [CheckoutLineInput!]!) {
-      checkoutLinesAdd(checkoutId: \$checkoutId, lines: \$lines) {
-        checkout {
-          id
-          lines {
-            quantity
-            variant {
-              id
-              name
-            }
-          }
-        }
-        errors {
-          field
-          message
-        }
-      }
-    }
-  ''';
-
-    final MutationOptions options = MutationOptions(
-      document: gql(addToCartMutation),
-      variables: {
-        'checkoutId': checkoutId,
-        'lines': [
-          {
-            'variantId': variantId,
-            'quantity': quantity,
-          },
-        ],
-      },
-    );
-
-    final QueryResult result = await client.value.mutate(options);
-
-    if (result.hasException) {
-      print(result.exception.toString());
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  Future<CheckoutResponse?> fetchCheckoutItems(String checkoutId) async {
-    const String getCheckoutQuery = '''
-    query GetCheckout(\$checkoutId: ID!) {
-      checkout(id: \$checkoutId) {
-        id
-        lines {
-          quantity
-          variant {
-            id
-            name
-            product {
-              name
-              thumbnail {
-                url
-              }
-              pricing {
-                priceRange {
-                  start {
-                    net {
-                      currency
-                      amount
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        totalPrice {
-          gross {
-            amount
-            currency
-          }
-        }
-      }
-    }
-  ''';
-
-    final QueryOptions options = QueryOptions(
-      document: gql(getCheckoutQuery),
-      variables: {
-        'checkoutId': checkoutId,
-      },
-    );
-
-    try {
-      final QueryResult result = await client.value.query(options);
-
-      if (result.hasException) {
-        print('Error fetching checkout items: ${result.exception.toString()}');
-        return null;
-      }
-
-      final checkoutData = result.data?['checkout'];
-      if (checkoutData != null) {
-        return CheckoutResponse.fromMap({'checkout': checkoutData});
-      } else {
-        print('No checkout found for ID: $checkoutId');
-        return null;
-      }
-    } catch (e) {
-      print('An unexpected error occurred: $e');
-      return null;
-    }
-  }
-
-  Future<dynamic> placeOrder(String checkoutId) async {
-    const String completeCheckoutMutation = '''
-  mutation CompleteCheckout(\$checkoutId: ID!) {
-    checkoutComplete(checkoutId: \$checkoutId) {
-      order {
-        id
-        number
-        total {
-          gross {
-            amount
-            currency
-          }
-        }
-      }
-      errors {
-        field
-        message
-      }
-    }
-  }
-  ''';
-
-    final MutationOptions options = MutationOptions(
-      document: gql(completeCheckoutMutation),
-      variables: {
-        'checkoutId': checkoutId,
-      },
-    );
-
-    try {
-      final QueryResult result = await client.value.mutate(options);
-
-      if (result.hasException) {
-        return null;
-      }
-
-      final orderData = result.data?['checkoutComplete']['order'];
-      if (orderData != null) {
-        return orderData;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<void> updateBillingAddress(
-      String checkoutId, Map<String, dynamic> billingAddress) async {
-    const String updateBillingAddressMutation = '''
-  mutation UpdateCheckoutBillingAddress(\$checkoutId: ID!, \$billingAddress: AddressInput!) {
-    checkoutBillingAddressUpdate(checkoutId: \$checkoutId, billingAddress: \$billingAddress) {
-      checkout {
-        id
-      }
-      errors {
-        field
-        message
-      }
-    }
-  }
-  ''';
-
-    final MutationOptions options = MutationOptions(
-      document: gql(updateBillingAddressMutation),
-      variables: {
-        'checkoutId': checkoutId,
-        'billingAddress': billingAddress,
-      },
-    );
-
-    try {
-      final QueryResult result = await client.value.mutate(options);
-
-      if (result.hasException) {
-        print('Error updating billing address: ${result.exception.toString()}');
-        return;
-      }
-
-      final errors = result.data?['checkoutBillingAddressUpdate']['errors'];
-      if (errors != null && errors.isNotEmpty) {
-        errors.forEach((error) {
-          print('Error in field ${error['field']}: ${error['message']}');
-        });
-      } else {
-        print('Billing address updated successfully.');
-      }
-    } catch (e) {
-      print('An unexpected error occurred: $e');
-    }
   }
 
   Future<dynamic> createAddress({
@@ -1037,5 +627,101 @@ class AuthService with ChangeNotifier {
         return billingAddress;
       }
     }
+  }
+
+  Future<bool> requestPasswordReset(String email, String redirectUrl) async {
+    const String requestPasswordResetMutation = '''
+    mutation requestPasswordReset(\$email: String!, \$redirectUrl: String!) {
+      requestPasswordReset(email: \$email, redirectUrl: \$redirectUrl) {
+        accountErrors {
+          field
+          message
+          code
+        }
+      }
+    }
+  ''';
+
+    final MutationOptions options = MutationOptions(
+      document: gql(requestPasswordResetMutation),
+      variables: {
+        'email': email,
+        'redirectUrl': redirectUrl,
+      },
+    );
+
+    final QueryResult result = await client.value.mutate(options);
+
+    if (result.hasException) {
+      print('Error requesting password reset: ${result.exception.toString()}');
+      return false;
+    }
+
+    // Check if there are any errors
+    final List<dynamic>? errors =
+        result.data?['requestPasswordReset']['accountErrors'];
+    if (errors != null && errors.isNotEmpty) {
+      bool isReadySend = false;
+      for (var error in errors) {
+        print(error);
+        if (error['code'] == 'PASSWORD_RESET_ALREADY_REQUESTED') {
+          isReadySend = true;
+        }
+        Utils().showToast(error['message'], ToastType.failed);
+      }
+      return isReadySend;
+    }
+
+    return true;
+  }
+
+  Future<Map<String, dynamic>?> setPassword({
+    required String token,
+    required String email,
+    required String password,
+  }) async {
+    const String setPasswordMutation = '''
+    mutation setPassword(\$token: String!, \$email: String!, \$password: String!) {
+      setPassword(token: \$token, email: \$email, password: \$password) {
+        accountErrors {
+          field
+          message
+          code
+        }
+        user {
+          id
+          email
+          isActive
+        }
+      }
+    }
+  ''';
+
+    final MutationOptions options = MutationOptions(
+      document: gql(setPasswordMutation),
+      variables: {
+        'token': token,
+        'email': email,
+        'password': password,
+      },
+    );
+
+    final QueryResult result = await client.value.mutate(options);
+
+    if (result.hasException) {
+      Utils().showToast(result.exception.toString(), ToastType.failed);
+      return null;
+    }
+    if (result.hasException ||
+        ((result.data?['setPassword']?['accountErrors']) is List &&
+            (result.data?['setPassword']?['accountErrors'] as List)
+                .isNotEmpty)) {
+      for (var err in result.data?['setPassword']?['accountErrors']) {
+        Utils().showToast(err?['message'], ToastType.failed);
+      }
+      return null; 
+    }
+
+    return result.data?['setPassword'];
   }
 }

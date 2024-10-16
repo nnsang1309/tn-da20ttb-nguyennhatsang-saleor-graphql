@@ -3,7 +3,7 @@
 // ----------- getProductsList ---------------
 const String getProductsList = r'''
 query getProductsList {
-  products(first: 20, channel: "default-channel") {
+  products(first: 20, channel: "channel-vnd") {
     edges {
       node {
         id
@@ -45,41 +45,4 @@ query getProductsList {
     }
   }
 }
-''';
-
-// ----------- getProductDetailById ---------------
-const String getProductById = r'''
-  query GetProductById($productId: ID!, $channel: String = "default-channel") {
-    product(id: $productId, channel: $channel) {
-      id
-      name
-      description
-      pricing {
-        priceRange {
-          start {
-            gross {
-              amount
-              currency
-            }
-          }
-        }
-      }
-      category {
-        id
-        name
-        slug
-        parent {
-          id
-          name
-        }
-      }
-      productType {
-        id
-        name
-      }
-      media {
-        url
-      }
-    }
-  }
 ''';

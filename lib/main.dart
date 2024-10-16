@@ -9,6 +9,7 @@ import 'package:petshop/screen/product/product_detail_screen.dart';
 import 'package:petshop/screen/product/product_overview_screen.dart';
 import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/cart_service.dart';
+import 'package:petshop/service/checkout_service.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:petshop/service/loading_service.dart';
 import 'package:petshop/service/login_or_register.dart';
@@ -51,10 +52,12 @@ class MyApp extends StatelessWidget {
         child: MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(
-                create: (_) => ProductService(client: client.value)),
+            ChangeNotifierProvider(create: (_) => ProductService()),
             ChangeNotifierProvider(create: (_) => CartService()),
             ChangeNotifierProvider(create: (_) => OrderService()),
+            ChangeNotifierProvider(create: (_) => CheckoutService()),
+            ChangeNotifierProvider(create: (_) => OrderService()),
+            ChangeNotifierProvider(create: (_) => CartService()),
           ],
           child: Builder(
             builder: (context) {
@@ -77,7 +80,6 @@ class MyApp extends StatelessWidget {
                 },
                 onGenerateRoute: (settings) {
                   if (settings.name == ProductDetailScreen.routeName) {
-                    final productID = settings.arguments as String;
                     return MaterialPageRoute(builder: (ctx) {
                       return Container();
                     });
