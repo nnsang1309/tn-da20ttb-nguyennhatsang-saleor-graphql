@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:petshop/common/app_constants.dart';
+import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,6 +55,15 @@ class OrderService with ChangeNotifier {
       final QueryResult result = await client.value.mutate(options);
 
       if (result.hasException) {
+        if (result.exception?.graphqlErrors.first.extensions?['exception']
+                ?['code'] ==
+            AppConstants.keyExpiredToken) {
+          final response = await AuthService(ignoreToken: true).refreshToken();
+          if (response == null) {
+            return null;
+          }
+          return orderCheckoutById(checkoutId);
+        }
         return null;
       }
 

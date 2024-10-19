@@ -6,6 +6,7 @@ import 'package:petshop/common/app_constants.dart';
 import 'package:petshop/components/button_base.dart';
 import 'package:petshop/components/button_custom_content.dart';
 import 'package:petshop/components/loading.dart';
+import 'package:petshop/screen/auth/forget_password_screen.dart';
 import 'package:petshop/screen/auth/register.dart';
 
 import 'package:petshop/service/auth_service.dart';
@@ -28,8 +29,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService(ignoreToken: true);
-  String email = 'linhnew@gmail.com';
-  String password = '1';
+  String email = '';
+  String password = '';
   final LoadingService loadingService = GetIt.I<LoadingService>();
 
   void _login() async {
@@ -48,6 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
           (response['user']?['checkoutIds'] as List).isNotEmpty) {
         await sharedPreferences.setString(AppConstants.keyCheckoutId,
             (response['user']?['checkoutIds'] as List).first);
+      } else {
+        await sharedPreferences.setString(AppConstants.keyCheckoutId, '');
       }
       if (response['user']?['defaultBillingAddress'] != null) {
         await sharedPreferences.setString(
@@ -118,7 +121,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: ButtonCustomContent(
                       radius: BorderRadius.circular(4),
-                      onTap: () {},
+                      onTap: () {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => const ForgetPasswordScreen(),
+                        //   ),
+                        // );
+                      },
                       child: Text(
                         'Quên mật khẩu?',
                         style: TextStyle(

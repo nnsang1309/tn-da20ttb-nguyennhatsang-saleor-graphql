@@ -39,4 +39,6 @@ class AppConstants {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove('keyCheckoutId');
   }
+
+  static const String keyExpiredToken = 'ExpiredSignatureError';
 }

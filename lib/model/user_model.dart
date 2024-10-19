@@ -254,17 +254,17 @@ class Order {
 
 class OrderLine {
   final int quantity;
-  final ProductVariant variant;
+  final ProductVariant? variant;
 
   OrderLine({
     required this.quantity,
     required this.variant,
   });
 
-  factory OrderLine.fromMap(Map<String, dynamic> map) {
+  factory OrderLine.fromMap(Map<String, dynamic>? map) {
     return OrderLine(
-      quantity: map['quantity'] ?? 0,
-      variant: ProductVariant.fromMap(map['variant']),
+      quantity: map?['quantity'] ?? 0,
+      variant: map?['variant'] != null ? ProductVariant.fromMap(map?['variant']) : null,
     );
   }
 }

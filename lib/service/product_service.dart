@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:petshop/common/app_constants.dart';
 import 'package:petshop/model/product_model.dart';
+import 'package:petshop/service/auth_service.dart';
 import 'package:petshop/service/graphql_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -74,6 +75,15 @@ class ProductService with ChangeNotifier {
     final QueryResult result = await client.value.query(options);
 
     if (result.hasException) {
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        final response = await AuthService(ignoreToken: true).refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return fetchProductsForUser(categoryId, channel, filter: filter);
+      }
       return [];
     }
 

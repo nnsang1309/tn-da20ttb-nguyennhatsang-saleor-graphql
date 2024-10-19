@@ -156,8 +156,19 @@ class AuthService with ChangeNotifier {
 
     final QueryResult result = await client.value.query(options);
     notifyListeners();
+
     if (result.hasException) {
-      print(result.exception.toString());
+      // ====================================== hết hạn token ======================================
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN111');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return fetchUserInfo();
+      }
       return null;
     }
 
@@ -248,7 +259,17 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
-      print('Logout error: ${result.exception.toString()}');
+      // ====================================== hết hạn token ======================================
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        // final response = await refreshToken();
+        // if (response == null) {
+        //   return null;
+        // }
+        // return logout();
+      }
     } else {
       final List<dynamic> accountErrors =
           result.data?['externalLogout']['accountErrors'];
@@ -369,7 +390,16 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
-      print('Update Account error: ${result.exception.toString()}');
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return updateAccount(firstName: firstName, lastName: lastName);
+      }
       return null;
     }
 
@@ -398,7 +428,16 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.query(options);
 
     if (result.hasException) {
-      print(result.exception.toString());
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return fetchCategories();
+      }
       return null;
     }
 
@@ -450,6 +489,20 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return createAddress(
+            firstName: firstName,
+            streetAddress1: streetAddress1,
+            city: city,
+            phone: phone);
+      }
       return null;
     } else {
       final address = result.data?['accountAddressCreate']['address'];
@@ -491,6 +544,16 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return setDefaultBillingAddress(addressId);
+      }
       return null;
     } else {
       final address = result.data?['accountSetDefaultAddress']['user']
@@ -533,6 +596,16 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
+      if (result.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return setDefaultShippingAddress(addressId);
+      }
       return null;
     } else {
       final address = result.data?['accountSetDefaultAddress']['user']
@@ -606,6 +679,16 @@ class AuthService with ChangeNotifier {
         await client.value.mutate(shippingOptions);
 
     if (shippingResult.hasException) {
+      if (shippingResult.exception?.graphqlErrors.first.extensions?['exception']
+              ?['code'] ==
+          AppConstants.keyExpiredToken) {
+        print('LINH_HET_TOKEN');
+        final response = await refreshToken();
+        if (response == null) {
+          return null;
+        }
+        return updateCheckoutAddresses(checkoutId, address);
+      }
       return null;
     } else {
       // Cập nhật địa chỉ thanh toán
@@ -653,7 +736,6 @@ class AuthService with ChangeNotifier {
     final QueryResult result = await client.value.mutate(options);
 
     if (result.hasException) {
-      print('Error requesting password reset: ${result.exception.toString()}');
       return false;
     }
 
@@ -719,9 +801,50 @@ class AuthService with ChangeNotifier {
       for (var err in result.data?['setPassword']?['accountErrors']) {
         Utils().showToast(err?['message'], ToastType.failed);
       }
-      return null; 
+      return null;
     }
 
     return result.data?['setPassword'];
+  }
+
+  Future<String?> refreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    String refreshToken = prefs.getString(AppConstants.keyRefreshToken) ?? '';
+
+    const String refreshTokenMutation = '''
+  mutation RefreshToken(\$refreshToken: String!) {
+    tokenRefresh(refreshToken: \$refreshToken) {
+      token
+      errors {
+        field
+        message
+      }
+    }
+  }
+  ''';
+
+    final MutationOptions options = MutationOptions(
+      document: gql(refreshTokenMutation),
+      variables: {
+        'refreshToken': refreshToken,
+      },
+    );
+
+    final QueryResult result =
+        await GraphqlConfig.initializeClient().value.mutate(options);
+
+    if (result.hasException) {
+      print('Error refreshing token: ${result.exception.toString()}');
+      return null;
+    }
+
+    final data = result.data?['tokenRefresh'];
+    if (data != null && data['token'] != null) {
+      client = GraphqlConfig.initializeClient(token: data['token']);
+      await prefs.setString(AppConstants.keyToken, data['token']);
+      return data['token'];
+    } else {
+      return null;
+    }
   }
 }

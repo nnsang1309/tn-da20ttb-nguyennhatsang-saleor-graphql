@@ -125,7 +125,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
                     ...userInfo!.orders![index].lines.map((line) {
                       total = total +
-                          (line.variant.product.pricing?.priceRange.start
+                          (line.variant?.product.pricing?.priceRange.start
                                       .amount ??
                                   0) *
                               line.quantity;
@@ -147,7 +147,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   width: 70,
                                   height: 70,
                                   child: Image.network(
-                                      line.variant.product.thumbnail?.url ??
+                                      line.variant?.product.thumbnail?.url ??
                                           ''),
                                 ),
                                 const SizedBox(
@@ -159,7 +159,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   children: [
                                     Text(
                                       maxLines: 2,
-                                      line.variant.product.name,
+                                      line.variant?.product.name ?? '',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -179,7 +179,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       height: 8,
                                     ),
                                     Text(
-                                      'Thành tiền: ${formatCurrency((line.variant.product.pricing?.priceRange.start.amount ?? 0) * line.quantity)}',
+                                      'Thành tiền: ${formatCurrency((line.variant?.product.pricing?.priceRange.start.amount ?? 0) * line.quantity)}',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
