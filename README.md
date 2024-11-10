@@ -1,17 +1,57 @@
-# petshop
+# Pet Shop App
 
-A new Flutter project.
+## Mục lục
 
-## Getting Started
+1. [Giới thiệu](#giới-thiệu)
+2. [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
+3. [Cài đặt](#cài-đặt)
+   - [1. Clone dự án](#1-clone-dự-án)
+   - [2. Cài đặt Saleor Backend](#2-cài-đặt-saleor-backend)
+   - [3. Cài đặt Flutter](#3-cài-đặt-flutter)
+   - [4. Chạy ứng dụng](#4-chạy-ứng-dụng)
 
-This project is a starting point for a Flutter application.
+## Giới thiệu
 
-A few resources to get you started if this is your first Flutter project:
+Pet Shop ứng dụng bán sản phẩm cho thú cưng, được phát triển bằng Flutter cho phần giao diện người dùng và Saleor cho backend. Dự án này sử dụng GraphQL API để kết nối giữa frontend và backend.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Yêu cầu hệ thống
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# tn-da20ttb-nguyennhatsang-saleor-graphql
+- Dart SDK: 3.5.0
+- Flutter: 3.24.0
+- Docker
+- Saleor CLI
+
+## Cài đặt
+
+### 1. Clone dự án
+
+Clone repository từ GitHub về máy của bạn:
+
+```bash
+git clone https://github.com/nnsang1309/tn-da20ttb-nguyennhatsang-saleor-graphql.git
+cd src
+```
+
+### 2. Cài đặt Saleor Backend
+
+Sử dụng Docker để cài đặt và chạy Saleor Backend:
+
+```bash
+docker run --name saleor -p 8000:8000 saleor/saleor:3.0
+```
+
+### 3. Cài đặt các phụ thuộc cho dự án Flutter
+
+Chạy lệnh sau để cài đặt các phụ thuộc cho dự án Flutter
+
+```bash
+flutter pub get
+```
+
+### 4. Chạy ứng dụng
+
+Để chạy ứng dụng trên thiết bị giả lập hoặc thiết bị thật, sử dụng lệnh
+
+```bash
+flutter run
+```
